@@ -77,10 +77,10 @@ export default function LoginPage() {
             <LayoutDashboard className="h-6 w-6" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white">
-            DataPulse Enterprise
+            Dashboard INAPROC
           </h1>
           <p className="text-xs sm:text-sm text-slate-400">
-            Masuk ke akun Anda untuk mengakses sistem monitoring & kendali.
+            Masuk ke akun Anda untuk mengakses sistem monitoring dan informasi pengadaan digital
           </p>
         </div>
 

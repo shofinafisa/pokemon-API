@@ -6,7 +6,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { AppToaster } from "@/components/ui/app-toaster";
 
 export const metadata: Metadata = {
-  title: "DataPulse Enterprise | Dynamic Feature Toggle Dashboard",
+  title: "Dashboard INAPROC | Dynamic Feature Toggle Dashboard",
   description:
     "Enterprise Data Dashboard dengan Unified Login, Dynamic Feature Toggle Engine, dan Role-Based Access Control.",
 };
