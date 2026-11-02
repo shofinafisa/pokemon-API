@@ -19,7 +19,6 @@ Halaman gerbang utama bagi **User (PPK Satker)** sebelum masuk ke dashboard anal
 - **12 Kartu Metode Modern:** Menampilkan 12 metode pengadaan LKPP dengan ikon, kategori, estimasi paket real-time, dan status aktif.
 - **Pencarian & Filter Kategori:** Mempermudah penelusuran metode berdasarkan kata kunci dan kategori (Pemilihan Langsung, Tender & Kompetisi, E-Katalog, Khusus & Swakelola).
 - **Navigasi Sekali Klik:** Mengarahkan ke masing-masing dashboard spesifik metode pengadaan.
-- **Opsi Ringkasan Nasional:** Tombol akses langsung ke dashboard komprehensif (`/dashboard/all`).
 
 ### 3. 12 Halaman Dashboard Khusus Metode Pengadaan (`/dashboard/[method]`)
 Setiap metode pengadaan memiliki halaman dashboard tersendiri dengan tata letak dan visual yang konsisten:
@@ -36,7 +35,6 @@ Setiap metode pengadaan memiliki halaman dashboard tersendiri dengan tata letak 
 11. `/dashboard/seleksi` — Seleksi
 12. `/dashboard/dikecualikan` — Dikecualikan
 - **Tombol Kembali:** *“Kembali ke Pilihan Metode”* untuk berpindah ke halaman utama `/dashboard`.
-- **Quick Switcher Bar:** Memungkinkan perpindahan antar-metode pengadaan tanpa harus kembali ke halaman awal.
 - **Filter Bertingkat & Dual Range Slider:** Sinkronisasi rentang tahun, jenis instansi, instansi, eselon, dan satker.
 - **Metrik KPI & Grafik Dinamis:** Data disaring khusus untuk metode yang sedang aktif.
 - **Tabel Paket & Ekspor:** Pencarian, pagination, ekspor Excel, CSV, PDF, dan Generate Infografis AI.

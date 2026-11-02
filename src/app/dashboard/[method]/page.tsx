@@ -21,11 +21,9 @@ export function generateStaticParams() {
     { method: "pengadaan-darurat" },
     { method: "seleksi" },
     { method: "dikecualikan" },
-    { method: "all" },
   ];
 }
 
 export default function MethodPage({ params }: MethodPageProps) {
   return <MethodDashboardView methodSlug={params.method} />;
 }
-

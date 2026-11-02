@@ -19,10 +19,7 @@ import {
   UserCheck,
   Search,
   ArrowRight,
-  SlidersHorizontal,
-  Sparkles,
   Layers,
-  CheckCircle2,
   AlertCircle,
 } from "lucide-react";
 
@@ -107,27 +104,15 @@ export default function UserMethodSelectionPage() {
 
           {/* Interactive Search & Category Filter Bar */}
           <div className="max-w-4xl mx-auto space-y-3">
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              {/* Search Bar */}
-              <div className="relative w-full flex-1">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <Input
-                  placeholder="Cari metode pengadaan (misal: Tender, E-Purchasing, Swakelola)..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-10 text-xs rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs"
-                />
-              </div>
-
-              {/* Master Comprehensive Dashboard Link */}
-              <Link
-                href="/dashboard/all"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20 transition-all shrink-0 cursor-pointer"
-                title="Akses dashboard komprehensif yang menampilkan semua metode aktif"
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-                <span>Lihat Semua Metode (Ringkasan Nasional)</span>
-              </Link>
+            {/* Full-width Search Bar */}
+            <div className="relative w-full">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Input
+                placeholder="Cari metode pengadaan (misal: Tender, E-Purchasing, Swakelola)..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-10 text-xs rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs"
+              />
             </div>
 
             {/* Category Filter Pills */}
@@ -253,29 +238,6 @@ export default function UserMethodSelectionPage() {
               </p>
             </div>
           )}
-
-          {/* Bottom Comprehensive Overview Banner */}
-          <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-blue-500/10 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  Perlu Melihat Keseluruhan Data Pengadaan Nasional?
-                </h4>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">
-                Akses dashboard komprehensif untuk memantau akumulasi seluruh 12 metode pengadaan aktif secara agregat dengan kontrol toggle interaktif.
-              </p>
-            </div>
-
-            <Link
-              href="/dashboard/all"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20 transition-all shrink-0 cursor-pointer self-start sm:self-auto"
-            >
-              <span>Akses Dashboard Komprehensif</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
         </div>
       </DashboardShell>
     </AuthGuard>
