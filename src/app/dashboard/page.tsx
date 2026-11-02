@@ -20,7 +20,6 @@ import {
   Search,
   ArrowRight,
   Sparkles,
-  Layers,
   AlertCircle,
 } from "lucide-react";
 
@@ -28,15 +27,6 @@ export default function UserMethodSelectionPage() {
   const { user } = useAuth();
   const { isFeatureEnabled, activeCount, totalCount } = useFeatures();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
-
-  const categories = [
-    "Semua",
-    "Pemilihan Langsung",
-    "Tender & Kompetisi",
-    "E-Katalog",
-    "Khusus & Swakelola",
-  ];
 
   // Pre-calculate package count and total amount for each method
   const methodStatsSummary = useMemo(() => {
@@ -57,17 +47,13 @@ export default function UserMethodSelectionPage() {
 
   const filteredMethods = useMemo(() => {
     return FEATURE_CONFIGS.filter((cfg) => {
-      const matchSearch =
+      return (
         cfg.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cfg.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cfg.category.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchCategory =
-        selectedCategory === "Semua" ? true : cfg.category === selectedCategory;
-
-      return matchSearch && matchCategory;
+        cfg.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     });
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm]);
 
   return (
     <AuthGuard allowedRoles={["user", "admin"]}>
@@ -103,9 +89,8 @@ export default function UserMethodSelectionPage() {
             </p>
           </div>
 
-          {/* Interactive Search & Category Filter Bar */}
-          <div className="max-w-4xl mx-auto space-y-3">
-            {/* Full-width Search Bar */}
+          {/* Interactive Search Bar */}
+          <div className="max-w-4xl mx-auto">
             <div className="relative w-full">
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <Input
@@ -114,31 +99,6 @@ export default function UserMethodSelectionPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 h-10 text-xs rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs"
               />
-            </div>
-
-            {/* Category Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-              <span className="text-[11px] font-medium text-slate-400 shrink-0 flex items-center gap-1 mr-1">
-                <Layers className="w-3 h-3 text-blue-500" />
-                Kategori:
-              </span>
-              {categories.map((cat) => {
-                const isSelected = selectedCategory === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-1.5 rounded-xl font-medium text-xs shrink-0 transition-all cursor-pointer ${
-                      isSelected
-                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs font-semibold"
-                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                );
-              })}
             </div>
           </div>
 
@@ -235,7 +195,7 @@ export default function UserMethodSelectionPage() {
                 Tidak ada metode pengadaan yang cocok
               </p>
               <p className="text-xs text-slate-400">
-                Silakan ganti kata kunci pencarian atau pilih kategori lain.
+                Silakan ganti kata kunci pencarian.
               </p>
             </div>
           )}
