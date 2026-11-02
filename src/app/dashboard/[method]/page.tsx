@@ -21,6 +21,7 @@ export function generateStaticParams() {
     { method: "pengadaan-darurat" },
     { method: "seleksi" },
     { method: "dikecualikan" },
+    { method: "all" },
   ];
 }
 

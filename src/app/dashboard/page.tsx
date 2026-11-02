@@ -19,6 +19,7 @@ import {
   UserCheck,
   Search,
   ArrowRight,
+  Sparkles,
   Layers,
   AlertCircle,
 } from "lucide-react";
@@ -238,6 +239,29 @@ export default function UserMethodSelectionPage() {
               </p>
             </div>
           )}
+
+          {/* Bottom Comprehensive Overview Banner */}
+          <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-blue-500/10 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  Perlu Melihat Keseluruhan Data Pengadaan Nasional?
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">
+                Akses dashboard komprehensif untuk memantau akumulasi seluruh 12 metode pengadaan aktif secara agregat dengan kontrol toggle interaktif.
+              </p>
+            </div>
+
+            <Link
+              href="/dashboard/all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20 transition-all shrink-0 cursor-pointer self-start sm:self-auto"
+            >
+              <span>Akses Dashboard Komprehensif</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </DashboardShell>
     </AuthGuard>

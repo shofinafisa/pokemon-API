@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthGuard } from "@/components/guards/auth-guard";
@@ -29,6 +29,7 @@ import {
   ArrowLeft,
   ShieldAlert,
   ChevronRight,
+  Layers,
 } from "lucide-react";
 
 interface MethodDashboardViewProps {
@@ -40,16 +41,11 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
   const { user } = useAuth();
   const {
     isFeatureEnabled,
+    activeMethods,
     yearRange: globalYearRange,
   } = useFeatures();
 
   const isAll = methodSlug.toLowerCase() === "all" || methodSlug.toLowerCase() === "nasional";
-
-  useEffect(() => {
-    if (isAll) {
-      router.replace("/dashboard");
-    }
-  }, [isAll, router]);
 
   const methodConfig = useMemo(() => {
     if (isAll) return null;
@@ -63,13 +59,8 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
   });
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
-  // If redirecting from old "all" path
-  if (isAll) {
-    return null;
-  }
-
   // If slug is invalid
-  if (!methodConfig) {
+  if (!isAll && !methodConfig) {
     return (
       <AuthGuard allowedRoles={["user", "admin"]}>
         <DashboardShell>
@@ -99,12 +90,16 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
     );
   }
 
-  const isEnabled = isFeatureEnabled(methodConfig.key);
-  const targetKey = methodConfig.key;
-  const targetLabel = methodConfig.label;
+  const isEnabled = isAll ? activeMethods.length > 0 : isFeatureEnabled(methodConfig!.key);
+  const targetKey = isAll ? null : methodConfig!.key;
+  const targetLabel = isAll ? "Semua Metode Pengadaan (Ringkasan Nasional)" : methodConfig!.label;
 
-  // Real-time dynamic calculation for this method
-  const targetKeysArray = [targetKey];
+  // Real-time dynamic calculation for this method or all active methods
+  const targetKeysArray = isAll
+    ? activeMethods
+    : targetKey
+    ? [targetKey]
+    : [];
 
   const { filteredTransactions, totalAmount, totalPackages, avgAmount, efficiencyRatio } =
     useMemo(() => {
@@ -158,7 +153,7 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
                   Dashboard
                 </Link>
                 <ChevronRight className="w-3 h-3 text-slate-400" />
-                <span className="font-semibold text-slate-800 dark:text-slate-100 truncate max-w-[200px]">
+                <span className="font-semibold text-slate-800 dark:text-slate-100 truncate max-w-[280px]">
                   {targetLabel}
                 </span>
               </div>
@@ -177,18 +172,30 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
                   PPK SATKER &bull; INAPROC
                 </Badge>
 
-                <Badge
-                  variant="outline"
-                  className="gap-1.5 py-0.5 px-2.5 font-semibold text-[11px]"
-                  style={{
-                    borderColor: `${methodConfig.badgeColor}40`,
-                    backgroundColor: `${methodConfig.badgeColor}15`,
-                    color: methodConfig.badgeColor,
-                  }}
-                >
-                  <MethodIcon name={methodConfig.iconName} className="w-3 h-3" />
-                  <span>{methodConfig.category}</span>
-                </Badge>
+                {methodConfig && (
+                  <Badge
+                    variant="outline"
+                    className="gap-1.5 py-0.5 px-2.5 font-semibold text-[11px]"
+                    style={{
+                      borderColor: `${methodConfig.badgeColor}40`,
+                      backgroundColor: `${methodConfig.badgeColor}15`,
+                      color: methodConfig.badgeColor,
+                    }}
+                  >
+                    <MethodIcon name={methodConfig.iconName} className="w-3 h-3" />
+                    <span>{methodConfig.category}</span>
+                  </Badge>
+                )}
+
+                {isAll && (
+                  <Badge
+                    variant="outline"
+                    className="gap-1.5 py-0.5 px-2.5 font-semibold text-[11px] border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                  >
+                    <Layers className="w-3 h-3 text-blue-500" />
+                    <span>Ringkasan Komprehensif (12 Metode)</span>
+                  </Badge>
+                )}
               </div>
 
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2 flex-wrap">
@@ -198,7 +205,10 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
               </h1>
 
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Selamat datang, <strong className="text-slate-700 dark:text-slate-200">{user?.name || "PPK Satker"}</strong>. Menampilkan analitik realisasi dan paket pengadaan khusus metode <strong className="text-slate-700 dark:text-slate-200">{targetLabel}</strong> secara real-time.
+                Selamat datang, <strong className="text-slate-700 dark:text-slate-200">{user?.name || "PPK Satker"}</strong>.{" "}
+                {isAll
+                  ? `Menampilkan analitik realisasi dan paket pengadaan akumulasi seluruh ${activeMethods.length} metode pengadaan aktif secara agregat.`
+                  : `Menampilkan analitik realisasi dan paket pengadaan khusus metode ${targetLabel} secara real-time.`}
               </p>
             </div>
 
@@ -207,48 +217,50 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
               <ExportControls
                 onGenerateAI={() => setIsAIModalOpen(true)}
                 customTransactions={filteredTransactions}
-                filenamePrefix={`laporan_pengadaan_${methodSlug}`}
+                filenamePrefix={isAll ? "laporan_pengadaan_nasional" : `laporan_pengadaan_${methodSlug}`}
               />
             </div>
           </div>
 
-          {/* Legal / Regulation Overview Info Box (for this method) */}
-          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-blue-50/50 via-slate-50 to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/80 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-start sm:items-center gap-3">
-              <div
-                className="p-2.5 rounded-xl shrink-0 text-white shadow-md"
-                style={{ backgroundColor: methodConfig.badgeColor }}
-              >
-                <MethodIcon name={methodConfig.iconName} className="w-4 h-4" />
+          {/* Legal / Regulation Overview Info Box (for single method) */}
+          {methodConfig && (
+            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-gradient-to-r from-blue-50/50 via-slate-50 to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/80 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-start sm:items-center gap-3">
+                <div
+                  className="p-2.5 rounded-xl shrink-0 text-white shadow-md"
+                  style={{ backgroundColor: methodConfig.badgeColor }}
+                >
+                  <MethodIcon name={methodConfig.iconName} className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                      Ketentuan Regulasi LKPP: {methodConfig.label}
+                    </h4>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium">
+                      Perpres Pengadaan
+                    </span>
+                  </div>
+                  <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">
+                    {methodConfig.description}
+                  </p>
+                </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs">
-                    Ketentuan Regulasi LKPP: {methodConfig.label}
-                  </h4>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium">
-                    Perpres Pengadaan
+
+              <div className="flex items-center gap-2 shrink-0 sm:border-l sm:border-slate-200 dark:sm:border-slate-800 sm:pl-4">
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-400 block">Status Fitur:</span>
+                  <span
+                    className={`text-[11px] font-bold ${
+                      isEnabled ? "text-emerald-600 dark:text-emerald-400" : "text-amber-500"
+                    }`}
+                  >
+                    {isEnabled ? "Aktif & Terbuka" : "Dinonaktifkan Admin"}
                   </span>
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">
-                  {methodConfig.description}
-                </p>
               </div>
             </div>
-
-            <div className="flex items-center gap-2 shrink-0 sm:border-l sm:border-slate-200 dark:sm:border-slate-800 sm:pl-4">
-              <div className="text-right">
-                <span className="text-[10px] text-slate-400 block">Status Fitur:</span>
-                <span
-                  className={`text-[11px] font-bold ${
-                    isEnabled ? "text-emerald-600 dark:text-emerald-400" : "text-amber-500"
-                  }`}
-                >
-                  {isEnabled ? "Aktif & Terbuka" : "Dinonaktifkan Admin"}
-                </span>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Cascading Filter Bar: Rentang Tahun (Dual Range Slider) + Multi-Choice Dropdowns */}
           <CascadingFilterBar
@@ -294,7 +306,7 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
           ) : (
             /* Visualisasi & Data Table (Terkorelasi Real-Time dengan Filter) */
             <div className="space-y-5">
-              {/* Kartu Metrik KPI Khusus Metode Ini */}
+              {/* Kartu Metrik KPI Khusus Metode Ini atau Ringkasan Nasional */}
               <section aria-label="Metrik Utama">
                 <KPIMetrics
                   customStats={methodStats}
@@ -303,18 +315,18 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
                 />
               </section>
 
-              {/* Grafik Tren & Donut Chart Khusus Metode Ini */}
+              {/* Grafik Tren & Donut Chart Khusus Metode Ini atau Distribusi Seluruh Metode */}
               <section aria-label="Visualisasi Grafik">
                 <DynamicChartGrid
                   customTransactions={filteredTransactions}
                   customStats={methodStats}
                   yearRange={filterState.yearRange}
-                  isSingleMethod={true}
+                  isSingleMethod={!isAll}
                   targetMethodLabel={targetLabel}
                 />
               </section>
 
-              {/* Tabel Dataset Paket Pengadaan Khusus Metode Ini */}
+              {/* Tabel Dataset Paket Pengadaan Khusus Metode Ini atau Ringkasan Nasional */}
               <section aria-label="Tabel Dataset">
                 <TransactionsTable
                   customTransactions={filteredTransactions}
