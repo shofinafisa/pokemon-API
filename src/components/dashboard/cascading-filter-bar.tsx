@@ -9,7 +9,7 @@ import {
   getSatkerOptions,
 } from "@/lib/cascading-filter-data";
 import { DateFilter } from "@/components/dashboard/date-filter";
-import { RotateCcw, ChevronDown, Calendar, Layers, X } from "lucide-react";
+import { RotateCcw, ChevronDown, Calendar } from "lucide-react";
 
 interface MultiSelectDropdownProps {
   label: string;
@@ -33,23 +33,16 @@ function MultiSelectDropdown({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
-
-  const toggleOption = (val: string) => {
-    if (selected.includes(val)) {
-      onChange(selected.filter((item) => item !== val));
-    } else {
-      onChange([...selected, val]);
-    }
-  };
+  }, []);
 
   const handleSelectAll = () => {
     onChange([...options]);
@@ -59,8 +52,16 @@ function MultiSelectDropdown({
     onChange([]);
   };
 
+  const toggleOption = (opt: string) => {
+    if (selected.includes(opt)) {
+      onChange(selected.filter((item) => item !== opt));
+    } else {
+      onChange([...selected, opt]);
+    }
+  };
+
   return (
-    <div className="relative flex-1 min-w-[150px]" ref={containerRef}>
+    <div className="relative flex-1 min-w-[140px] sm:min-w-[160px]" ref={containerRef}>
       <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mb-1">
         {label}
       </label>
@@ -68,12 +69,12 @@ function MultiSelectDropdown({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`w-full h-9 px-3 rounded-xl border text-xs text-left flex items-center justify-between gap-1.5 transition-all cursor-pointer ${
+        className={`w-full h-9 px-3 rounded-xl border text-xs font-medium flex items-center justify-between gap-1.5 transition-all text-left shadow-2xs ${
           disabled
-            ? "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-50 cursor-not-allowed text-slate-400"
+            ? "bg-slate-100 dark:bg-slate-800/50 text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed"
             : selected.length > 0
-            ? "bg-blue-50/70 dark:bg-blue-950/40 border-blue-400/60 dark:border-blue-500/50 text-blue-700 dark:text-blue-300 font-medium"
-            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-slate-300"
+            ? "border-blue-500/50 bg-blue-50/50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 font-semibold"
+            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60"
         }`}
       >
         <span className="truncate">
@@ -169,7 +170,7 @@ export function CascadingFilterBar({
     isYearFiltered;
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs space-y-3 transition-all">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs transition-all">
       {/* Filter Row */}
       <div className="flex flex-wrap lg:flex-nowrap items-end gap-2.5">
         {/* Dual Range Slider: Rentang Tahun */}
@@ -265,101 +266,6 @@ export function CascadingFilterBar({
           <span>Reset</span>
         </button>
       </div>
-
-      {/* Active filter summary tag bar (Clean & minimal) */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
-          <span className="text-slate-400 font-medium flex items-center gap-1">
-            <Layers className="w-3 h-3 text-blue-500" />
-            Filter Aktif:
-          </span>
-          {isYearFiltered && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-medium">
-              Tahun{" "}
-              {filterState.yearRange[0] === filterState.yearRange[1]
-                ? filterState.yearRange[0]
-                : `${filterState.yearRange[0]}—${filterState.yearRange[1]}`}
-              <X
-                className="w-2.5 h-2.5 text-blue-500 hover:text-rose-500 cursor-pointer"
-                onClick={() =>
-                  onChange({
-                    ...filterState,
-                    yearRange: [2020, 2026],
-                  })
-                }
-              />
-            </span>
-          )}
-          {filterState.jenisInstansi.map((j) => (
-            <span
-              key={j}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-            >
-              {j}
-              <X
-                className="w-2.5 h-2.5 text-slate-400 hover:text-rose-500 cursor-pointer"
-                onClick={() =>
-                  onChange({
-                    ...filterState,
-                    jenisInstansi: filterState.jenisInstansi.filter((item) => item !== j),
-                  })
-                }
-              />
-            </span>
-          ))}
-          {filterState.instansi.map((i) => (
-            <span
-              key={i}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-            >
-              {i}
-              <X
-                className="w-2.5 h-2.5 text-slate-400 hover:text-rose-500 cursor-pointer"
-                onClick={() =>
-                  onChange({
-                    ...filterState,
-                    instansi: filterState.instansi.filter((item) => item !== i),
-                  })
-                }
-              />
-            </span>
-          ))}
-          {filterState.eselon.map((e) => (
-            <span
-              key={e}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-            >
-              {e}
-              <X
-                className="w-2.5 h-2.5 text-slate-400 hover:text-rose-500 cursor-pointer"
-                onClick={() =>
-                  onChange({
-                    ...filterState,
-                    eselon: filterState.eselon.filter((item) => item !== e),
-                  })
-                }
-              />
-            </span>
-          ))}
-          {filterState.satker.map((s) => (
-            <span
-              key={s}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-            >
-              {s}
-              <X
-                className="w-2.5 h-2.5 text-slate-400 hover:text-rose-500 cursor-pointer"
-                onClick={() =>
-                  onChange({
-                    ...filterState,
-                    satker: filterState.satker.filter((item) => item !== s),
-                  })
-                }
-              />
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
