@@ -1,0 +1,38 @@
+[
+  {
+    "id": "usr_admin_inaproc_01",
+    "email": "admin@dashboard.com",
+    "password": "$2b$10$wr4aM/2B4sffxDHh2CepdO2UjyV4rE3CmlIMb5IQUeSGVLkp/cLBS",
+    "name": "Alexander Vance (Admin LKPP)",
+    "role": "ADMIN",
+    "createdAt": "2026-11-02T07:47:39.476Z",
+    "updatedAt": "2026-11-02T07:47:39.477Z"
+  },
+  {
+    "id": "usr_satker_ppk_02",
+    "email": "user@dashboard.com",
+    "password": "$2b$10$LiiB8tkTyW.V9ZoGH9aNhuGIonsdSvGZowUYNVNJ2XD0OFbagkaWW",
+    "name": "Sarah Jenkins (PPK Satker)",
+    "role": "USER",
+    "createdAt": "2026-11-02T07:47:39.477Z",
+    "updatedAt": "2026-11-02T07:47:39.477Z"
+  },
+  {
+    "id": "usr_auditor_bpkp_03",
+    "email": "auditor@inaproc.id",
+    "password": "$2b$10$LiiB8tkTyW.V9ZoGH9aNhuGIonsdSvGZowUYNVNJ2XD0OFbagkaWW",
+    "name": "Budi Santoso (Auditor BPKP)",
+    "role": "USER",
+    "createdAt": "2026-11-02T07:47:39.477Z",
+    "updatedAt": "2026-11-02T07:47:39.477Z"
+  },
+  {
+    "id": "usr_1793607205461_z81sr",
+    "name": "Shofiya",
+    "email": "shofiya@gmail.com",
+    "password": "$2b$10$jzciSuMrRt4yQ/coCgd6lOOoggyWOXBTQvR0EkUZq7Q0LpHteHzMy",
+    "role": "ADMIN",
+    "createdAt": "2026-11-02T08:13:25.461Z",
+    "updatedAt": "2026-11-02T08:13:25.461Z"
+  }
+]

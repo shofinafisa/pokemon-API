@@ -59,6 +59,35 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
   });
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
+  const isEnabled = isAll ? activeMethods.length > 0 : (methodConfig ? isFeatureEnabled(methodConfig.key) : false);
+  const targetKey = isAll ? null : (methodConfig ? methodConfig.key : null);
+  const targetLabel = isAll ? "Semua Metode Pengadaan (Ringkasan Nasional)" : (methodConfig ? methodConfig.label : "");
+
+  // Real-time dynamic calculation for this method or all active methods
+  const targetKeysArray = useMemo(() => {
+    return isAll ? activeMethods : targetKey ? [targetKey] : [];
+  }, [isAll, activeMethods, targetKey]);
+
+  const { filteredTransactions, totalAmount, totalPackages, avgAmount, efficiencyRatio } =
+    useMemo(() => {
+      return calculateDynamicStats(targetKeysArray, filterState.yearRange, {
+        jenisInstansi: filterState.jenisInstansi,
+        instansi: filterState.instansi,
+        eselon: filterState.eselon,
+        satker: filterState.satker,
+      });
+    }, [targetKeysArray, filterState]);
+
+  const methodStats = useMemo(
+    () => ({
+      totalAmount,
+      totalPackages,
+      avgAmount,
+      efficiencyRatio,
+    }),
+    [totalAmount, totalPackages, avgAmount, efficiencyRatio]
+  );
+
   // If slug is invalid
   if (!isAll && !methodConfig) {
     return (
@@ -89,37 +118,6 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
       </AuthGuard>
     );
   }
-
-  const isEnabled = isAll ? activeMethods.length > 0 : isFeatureEnabled(methodConfig!.key);
-  const targetKey = isAll ? null : methodConfig!.key;
-  const targetLabel = isAll ? "Semua Metode Pengadaan (Ringkasan Nasional)" : methodConfig!.label;
-
-  // Real-time dynamic calculation for this method or all active methods
-  const targetKeysArray = isAll
-    ? activeMethods
-    : targetKey
-    ? [targetKey]
-    : [];
-
-  const { filteredTransactions, totalAmount, totalPackages, avgAmount, efficiencyRatio } =
-    useMemo(() => {
-      return calculateDynamicStats(targetKeysArray, filterState.yearRange, {
-        jenisInstansi: filterState.jenisInstansi,
-        instansi: filterState.instansi,
-        eselon: filterState.eselon,
-        satker: filterState.satker,
-      });
-    }, [targetKeysArray, filterState]);
-
-  const methodStats = useMemo(
-    () => ({
-      totalAmount,
-      totalPackages,
-      avgAmount,
-      efficiencyRatio,
-    }),
-    [totalAmount, totalPackages, avgAmount, efficiencyRatio]
-  );
 
   const resetFilters = () => {
     setFilterState({

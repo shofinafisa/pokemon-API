@@ -14,7 +14,7 @@ import { ShieldCheck, Activity } from "lucide-react";
 
 export default function AdminPage() {
   return (
-    <AuthGuard allowedRoles={["admin"]}>
+    <AuthGuard allowedRoles={["ADMIN", "admin"]}>
       <DashboardShell>
         {/* Admin Header Banner */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">

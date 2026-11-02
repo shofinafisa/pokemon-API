@@ -47,11 +47,13 @@ export function DateFilter({
   const [localEnd, setLocalEnd] = useState(activeRange[1]);
   const [activeThumb, setActiveThumb] = useState<"start" | "end" | null>(null);
 
+  const startYear = activeRange[0];
+  const endYear = activeRange[1];
   // Keep local state in sync with external value or context
   useEffect(() => {
-    setLocalStart(activeRange[0]);
-    setLocalEnd(activeRange[1]);
-  }, [activeRange[0], activeRange[1]]);
+    setLocalStart(startYear);
+    setLocalEnd(endYear);
+  }, [startYear, endYear]);
 
   // Close on outside click
   useEffect(() => {

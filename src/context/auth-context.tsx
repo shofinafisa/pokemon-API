@@ -1,8 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { User, UserRole, AuthContextType } from "@/types/auth";
-import { DEMO_USERS } from "@/lib/mock-data";
 
 const AUTH_STORAGE_KEY = "enterprise_dashboard_session";
 
@@ -13,8 +12,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize session from localStorage
-  useEffect(() => {
+  // Helper avatar fallback
+  const getAvatar = (name: string, roleVal: string) => {
+    return roleVal.toUpperCase() === "ADMIN"
+      ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+      : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80";
+  };
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          const userWithAvatar: User = {
+            ...data.user,
+            avatar: getAvatar(data.user.name, data.user.role),
+            title: data.user.role === "ADMIN" ? "Administrator LKPP" : "PPK Satker",
+          };
+          setUser(userWithAvatar);
+          setRole(data.user.role);
+          try {
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userWithAvatar));
+          } catch {
+            // Ignore localStorage errors
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch active session from API, falling back to local storage", e);
+    }
+
+    // Fallback localStorage jika offline/SSR initial
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
       if (stored) {
@@ -22,72 +52,97 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(parsed);
         setRole(parsed.role);
       }
-    } catch (e) {
-      console.error("Failed to parse stored auth session", e);
-    } finally {
-      setIsLoading(false);
+    } catch {
+      // Ignore
     }
   }, []);
+
+  // Initialize session on mount
+  useEffect(() => {
+    refreshUser().finally(() => {
+      setIsLoading(false);
+    });
+  }, [refreshUser]);
 
   const login = async (
     email: string,
     password: string
   ): Promise<{ success: boolean; error?: string; role?: UserRole }> => {
-    // Artificial small delay for realistic authentication UX
-    await new Promise((res) => setTimeout(res, 400));
-
-    const normalizedEmail = email.trim().toLowerCase();
-    const demoAccount = DEMO_USERS[normalizedEmail];
-
-    if (!demoAccount) {
-      return {
-        success: false,
-        error: "Email tidak terdaftar. Gunakan admin@dashboard.com atau user@dashboard.com",
-      };
-    }
-
-    if (demoAccount.password !== password) {
-      return {
-        success: false,
-        error: "Password salah. Silakan coba kembali.",
-      };
-    }
-
-    const authenticatedUser = demoAccount.user;
-    setUser(authenticatedUser);
-    setRole(authenticatedUser.role);
-
     try {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
-    } catch (e) {
-      console.error("Failed to persist auth session", e);
-    }
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    return {
-      success: true,
-      role: authenticatedUser.role,
-    };
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        return {
+          success: false,
+          error: data.message || "Email atau kata sandi tidak valid.",
+        };
+      }
+
+      const authenticatedUser: User = {
+        ...data.user,
+        avatar: getAvatar(data.user.name, data.user.role),
+        title: data.user.role === "ADMIN" ? "Administrator LKPP" : "PPK Satker",
+      };
+
+      setUser(authenticatedUser);
+      setRole(data.role);
+
+      try {
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
+      } catch {
+        // Ignore
+      }
+
+      return {
+        success: true,
+        role: data.role,
+      };
+    } catch (error) {
+      console.error("Login process error:", error);
+      return {
+        success: false,
+        error: "Koneksi ke server gagal. Pastikan server aktif.",
+      };
+    }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await fetch("/api/auth", { method: "DELETE" });
+    } catch (e) {
+      console.error("Logout request error:", e);
+    }
     setUser(null);
     setRole(null);
     try {
       localStorage.removeItem(AUTH_STORAGE_KEY);
-    } catch (e) {
-      console.error("Failed to clear auth session", e);
+    } catch {
+      // Ignore
     }
   };
 
   const switchRole = (newRole: UserRole) => {
-    const targetEmail = newRole === "admin" ? "admin@dashboard.com" : "user@dashboard.com";
-    const targetUser = DEMO_USERS[targetEmail].user;
-    setUser(targetUser);
+    const isTargetAdmin = newRole.toUpperCase() === "ADMIN";
+    const dummyUser: User = {
+      id: isTargetAdmin ? "usr_admin_inaproc_01" : "usr_satker_ppk_02",
+      name: isTargetAdmin ? "Alexander Vance (Admin)" : "Sarah Jenkins (PPK Satker)",
+      email: isTargetAdmin ? "admin@dashboard.com" : "user@dashboard.com",
+      role: newRole,
+      title: isTargetAdmin ? "Administrator LKPP" : "PPK Satker",
+      avatar: getAvatar(isTargetAdmin ? "Alexander Vance" : "Sarah Jenkins", newRole),
+    };
+    setUser(dummyUser);
     setRole(newRole);
     try {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(targetUser));
-    } catch (e) {
-      console.error("Failed to switch role session", e);
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(dummyUser));
+    } catch {
+      // Ignore
     }
   };
 
@@ -101,6 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         switchRole,
+        refreshUser,
       }}
     >
       {children}

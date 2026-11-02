@@ -13,7 +13,7 @@ export default function IndexPage() {
     if (!isLoading) {
       if (!isAuthenticated) {
         router.replace("/login");
-      } else if (role === "admin") {
+      } else if (role?.toUpperCase() === "ADMIN") {
         router.replace("/admin");
       } else {
         router.replace("/dashboard");

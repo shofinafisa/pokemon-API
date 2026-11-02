@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import { FeatureProvider } from "@/context/feature-context";
 import { ToastProvider } from "@/components/ui/toast";
+import { AppToaster } from "@/components/ui/app-toaster";
 
 export const metadata: Metadata = {
   title: "DataPulse Enterprise | Dynamic Feature Toggle Dashboard",
@@ -21,6 +22,7 @@ export default function RootLayout({
         <AuthProvider>
           <FeatureProvider>
             <ToastProvider>
+              <AppToaster />
               {children}
             </ToastProvider>
           </FeatureProvider>

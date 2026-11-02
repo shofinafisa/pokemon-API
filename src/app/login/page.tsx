@@ -3,19 +3,17 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
-import { useToast } from "@/components/ui/toast";
+import toast from "react-hot-toast";
 import {
   LayoutDashboard,
   Lock,
   Mail,
   ArrowRight,
-  ShieldCheck,
-  UserCheck,
   AlertCircle,
   Loader2,
-  Sparkles,
   Eye,
   EyeOff,
+  ShieldCheck,
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -24,18 +22,18 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loadingRole, setLoadingRole] = useState<"admin" | "user" | null>(null);
 
   const { login } = useAuth();
   const router = useRouter();
-  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
 
     if (!email || !password) {
-      setErrorMessage("Silakan masukkan email dan kata sandi Anda.");
+      const msg = "Silakan masukkan email dan kata sandi Anda.";
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
@@ -44,63 +42,23 @@ export default function LoginPage() {
     setIsSubmitting(false);
 
     if (!result.success) {
-      setErrorMessage(result.error || "Login gagal. Periksa kembali kredensial Anda.");
+      const errorText = result.error || "Login gagal. Periksa kembali kredensial Anda.";
+      setErrorMessage(errorText);
+      toast.error(errorText);
       return;
     }
 
-    // Role detected automatically
-    if (result.role === "admin") {
-      toast({
-        title: "Login Berhasil (Administrator)",
-        description: "Selamat datang kembali, Administrator. Mengalihkan ke konsol manajemen...",
-        type: "success",
+    // Role detected automatically from server JWT payload
+    const roleUpper = result.role ? result.role.toUpperCase() : "USER";
+
+    if (roleUpper === "ADMIN") {
+      toast.success("Login Berhasil! Selamat datang, Administrator.", {
+        icon: "🛡️",
       });
       router.push("/admin");
     } else {
-      toast({
-        title: "Login Berhasil (Standard User)",
-        description: "Selamat datang kembali. Mengalihkan ke dashboard analitik...",
-        type: "success",
-      });
-      router.push("/dashboard");
-    }
-  };
-
-  // 1-Click Autofill & Realtime Connect
-  const handleQuickLogin = async (targetRole: "admin" | "user") => {
-    const targetEmail = targetRole === "admin" ? "admin@dashboard.com" : "user@dashboard.com";
-    const targetPass = targetRole === "admin" ? "admin123" : "user123";
-
-    // 1. Autofill inputs realtime
-    setEmail(targetEmail);
-    setPassword(targetPass);
-    setErrorMessage("");
-    setLoadingRole(targetRole);
-    setIsSubmitting(true);
-
-    // 2. Authenticate
-    const result = await login(targetEmail, targetPass);
-    setIsSubmitting(false);
-
-    if (!result.success) {
-      setLoadingRole(null);
-      setErrorMessage(result.error || "Login gagal.");
-      return;
-    }
-
-    // 3. Connect realtime to dashboard
-    if (result.role === "admin") {
-      toast({
-        title: "Login Berhasil (Administrator)",
-        description: "Menghubungkan langsung ke konsol manajemen...",
-        type: "success",
-      });
-      router.push("/admin");
-    } else {
-      toast({
-        title: "Login Berhasil (Standard User)",
-        description: "Menghubungkan langsung ke dashboard analitik...",
-        type: "success",
+      toast.success("Login Berhasil! Mengalihkan ke Dashboard Analitik...", {
+        icon: "📊",
       });
       router.push("/dashboard");
     }
@@ -113,16 +71,16 @@ export default function LoginPage() {
 
       {/* Main Container */}
       <div className="w-full max-w-md relative z-10 flex flex-col items-center">
-        {/* Simplified Header: 1 main title and 1-line subtitle */}
+        {/* Header: Judul Utama dan Subtitle */}
         <div className="text-center mb-6 space-y-1.5">
-          <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600/15 border border-blue-500/20 shadow-inner mb-1 text-blue-400">
-            <LayoutDashboard className="h-5 w-5" />
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 mb-1.5">
+            <LayoutDashboard className="h-6 w-6" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white">
             DataPulse Enterprise
           </h1>
-          <p className="text-sm text-slate-400">
-            Masuk ke akun Anda untuk mengakses dashboard analitik.
+          <p className="text-xs sm:text-sm text-slate-400">
+            Masuk ke akun Anda untuk mengakses sistem monitoring & kendali.
           </p>
         </div>
 
@@ -135,6 +93,7 @@ export default function LoginPage() {
             </div>
           )}
 
+          {/* Murni 1 Form Email & Password */}
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Email Field */}
             <div className="space-y-1.5">
@@ -145,20 +104,23 @@ export default function LoginPage() {
                 <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="email"
-                  placeholder="nama@dashboard.com"
+                  placeholder="admin@dashboard.com atau user@dashboard.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-slate-700/80 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-sm transition-all"
+                  autoComplete="email"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-sm transition-all"
                 />
               </div>
             </div>
 
             {/* Password Field with Peek/Hide */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-300">
-                Kata Sandi
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-slate-300">
+                  Kata Sandi
+                </label>
+              </div>
               <div className="relative">
                 <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
@@ -167,7 +129,8 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-10 py-2.5 bg-slate-800/50 border border-slate-700/80 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-sm transition-all"
+                  autoComplete="current-password"
+                  className="w-full pl-10 pr-10 py-2.5 bg-slate-800/50 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-sm transition-all"
                 />
                 <button
                   type="button"
@@ -188,99 +151,28 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-blue-600/25 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 text-sm cursor-pointer"
+              className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-blue-600/25 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 text-sm cursor-pointer"
             >
-              {isSubmitting && !loadingRole ? (
+              {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Memverifikasi...</span>
+                  <span>Memverifikasi Akun...</span>
                 </>
               ) : (
                 <>
-                  <span>Masuk ke Dashboard</span>
+                  <span>Masuk ke Sistem</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Quick 1-Click Demo Login */}
-          <div className="pt-5 border-t border-slate-800 space-y-3">
-            <div className="flex items-center justify-between text-xs text-slate-400">
-              <span className="flex items-center gap-1.5 font-medium text-slate-300">
-                <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                Pilihan Akun Demo
-              </span>
-              <span className="text-[11px] text-slate-500">Klik untuk masuk instan</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {/* Admin Card */}
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => handleQuickLogin("admin")}
-                className="relative overflow-hidden rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-950/40 via-slate-900/60 to-slate-900/90 p-3.5 text-left transition-all duration-300 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none cursor-pointer group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-lg bg-blue-500/15 border border-blue-500/25 text-blue-400 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:shadow-blue-500/30 transition-all duration-300 shrink-0">
-                    {loadingRole === "admin" ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <ShieldCheck className="w-4 h-4" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-white group-hover:text-blue-200 transition-colors">
-                      Akun Admin
-                    </p>
-                    <p className="text-[10px] text-blue-400/90 font-medium flex items-center gap-0.5 mt-0.5">
-                      {loadingRole === "admin" ? (
-                        "Menghubungkan..."
-                      ) : (
-                        <>
-                          <span>Masuk Instan</span>
-                          <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
-                        </>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </button>
-
-              {/* User Card */}
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => handleQuickLogin("user")}
-                className="relative overflow-hidden rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-slate-900/60 to-slate-900/90 p-3.5 text-left transition-all duration-300 hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none cursor-pointer group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:shadow-emerald-500/30 transition-all duration-300 shrink-0">
-                    {loadingRole === "user" ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <UserCheck className="w-4 h-4" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-white group-hover:text-emerald-200 transition-colors">
-                      Akun User
-                    </p>
-                    <p className="text-[10px] text-emerald-400/90 font-medium flex items-center gap-0.5 mt-0.5">
-                      {loadingRole === "user" ? (
-                        "Menghubungkan..."
-                      ) : (
-                        <>
-                          <span>Masuk Instan</span>
-                          <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
-                        </>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </button>
-            </div>
+          {/* Clean Security Info Footer */}
+          <div className="pt-4 border-t border-slate-800/80 text-center">
+            <p className="text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+              Sistem Otentikasi Terenkripsi &bull; Smart Role-Based Routing
+            </p>
           </div>
         </div>
       </div>
