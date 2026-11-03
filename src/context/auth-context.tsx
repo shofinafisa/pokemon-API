@@ -13,7 +13,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Helper avatar fallback
-  const getAvatar = (name: string, roleVal: string) => {
+  const getAvatar = (name: string, roleVal: string, existingAvatar?: string) => {
+    if (existingAvatar) return existingAvatar;
     return roleVal.toUpperCase() === "ADMIN"
       ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
       : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80";
@@ -27,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (data.authenticated && data.user) {
           const userWithAvatar: User = {
             ...data.user,
-            avatar: getAvatar(data.user.name, data.user.role),
+            avatar: data.user.avatar || getAvatar(data.user.name, data.user.role),
             title: data.user.role === "ADMIN" ? "Administrator LKPP" : "PPK Satker",
           };
           setUser(userWithAvatar);
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const authenticatedUser: User = {
         ...data.user,
-        avatar: getAvatar(data.user.name, data.user.role),
+        avatar: data.user.avatar || getAvatar(data.user.name, data.user.role),
         title: data.user.role === "ADMIN" ? "Administrator LKPP" : "PPK Satker",
       };
 
@@ -146,6 +147,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUserAvatar = async (avatarUrl: string): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: avatarUrl }),
+      });
+
+      const updatedUser: User = {
+        ...user,
+        avatar: avatarUrl,
+      };
+      setUser(updatedUser);
+      try {
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedUser));
+      } catch {
+        // Ignore
+      }
+
+      return true;
+    } catch (err) {
+      console.error("Failed to update avatar on server:", err);
+      const updatedUser: User = {
+        ...user,
+        avatar: avatarUrl,
+      };
+      setUser(updatedUser);
+      try {
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedUser));
+      } catch {
+        // Ignore
+      }
+      return true;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -157,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         switchRole,
         refreshUser,
+        updateUserAvatar,
       }}
     >
       {children}

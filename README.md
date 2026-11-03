@@ -37,6 +37,7 @@ Setiap metode pengadaan memiliki halaman dashboard tersendiri dengan tata letak 
 12. `/dashboard/dikecualikan` — Dikecualikan
 - **Tombol Kembali:** *“Kembali ke Pilihan Metode”* untuk berpindah ke halaman utama `/dashboard`.
 - **Filter Bertingkat & Dual Range Slider:** Sinkronisasi rentang tahun, jenis instansi, instansi, eselon, dan satker.
+- **Fitur Live Search pada Dropdown Filter:** Dilengkapi kotak pencarian instan pada dropdown filter *Instansi*, *Eselon I / II*, dan *Satker* dengan autofokus, filter real-time, dan tombol clear.
 - **Metrik KPI & Grafik Dinamis:** Data disaring khusus untuk metode yang sedang aktif.
 - **Tabel Paket & Ekspor:** Pencarian, pagination, ekspor Excel, CSV, PDF, dan Generate Infografis AI.
 
@@ -54,6 +55,15 @@ Admin dapat mengaktifkan atau menonaktifkan 12 metode pengadaan secara instan vi
 10. **Pengadaan Darurat**
 11. **Seleksi**
 12. **Dikecualikan**
+
+### 5. Fitur Edit Foto Profil Akun
+- **Akses Interaktif dari Header:** Setiap pengguna yang sedang login (baik Administrator maupun PPK Satker) dapat mengeklik avatar profil di header untuk membuka modal edit foto profil.
+- **Akses Manajemen dari Admin Settings (`/admin/settings`):** Administrator dapat melihat foto profil seluruh akun pada tabel pengguna dan mengubah foto akun siapa pun secara langsung.
+- **3 Mode Pemilihan Foto:**
+  1. **Upload dari Perangkat:** Unggah file foto lokal (JPG, PNG, GIF, WebP) dengan konversi otomatis ke Base64 data URL (bekerja 100% offline).
+  2. **Koleksi Preset Resmi:** Pilihan 8 avatar profesional resmi INAPROC/LKPP sekali klik.
+  3. **Tautan URL Gambar:** Dukungan memasukkan URL gambar kustom.
+- **Pratinjau Langsung & Persistensi Data:** Dilengkapi live circular framing preview dan tersimpan secara permanen di basis data JSON serta state sesi pengguna.
 
 ---
 

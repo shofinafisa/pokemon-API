@@ -20,4 +20,5 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   switchRole: (newRole: UserRole) => void;
   refreshUser: () => Promise<void>;
+  updateUserAvatar: (avatar: string) => Promise<boolean>;
 }
