@@ -38,6 +38,7 @@ Setiap metode pengadaan memiliki halaman dashboard tersendiri dengan tata letak 
 - **Tombol Kembali:** *“Kembali ke Pilihan Metode”* untuk berpindah ke halaman utama `/dashboard`.
 - **Filter Bertingkat & Dual Range Slider:** Sinkronisasi rentang tahun, jenis instansi, instansi, eselon, dan satker.
 - **Fitur Live Search pada Dropdown Filter:** Dilengkapi kotak pencarian instan pada dropdown filter *Instansi*, *Eselon I / II*, dan *Satker* dengan autofokus, filter real-time, dan tombol clear.
+- **Pengurutan Otomatis Opsi Terpilih:** Opsi yang dicentang otomatis berpindah ke urutan paling atas daftar dropdown dengan urutan konsisten, diikuti opsi yang belum dipilih yang tetap tersusun secara alfabetis.
 - **Metrik KPI & Grafik Dinamis:** Data disaring khusus untuk metode yang sedang aktif.
 - **Tabel Paket & Ekspor:** Pencarian, pagination, ekspor Excel, CSV, PDF, dan Generate Infografis AI.
 

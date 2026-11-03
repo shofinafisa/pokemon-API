@@ -19,6 +19,7 @@ interface MultiSelectDropdownProps {
   disabled?: boolean;
   placeholder?: string;
   searchable?: boolean;
+  autoSortSelectedFirst?: boolean;
 }
 
 function MultiSelectDropdown({
@@ -29,6 +30,7 @@ function MultiSelectDropdown({
   disabled = false,
   placeholder = "Semua",
   searchable = true,
+  autoSortSelectedFirst = false,
 }: MultiSelectDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,16 +60,35 @@ function MultiSelectDropdown({
     }
   }, [isOpen]);
 
-  const filteredOptions = useMemo(() => {
-    if (!searchTerm.trim()) return options;
-    const q = searchTerm.toLowerCase();
-    return options.filter((opt) => opt.toLowerCase().includes(q));
-  }, [options, searchTerm]);
+  // Options sorting and filtering
+  // When autoSortSelectedFirst is true:
+  // - Checked items appear at the very top (sorted alphabetically)
+  // - Unchecked items appear below (sorted alphabetically)
+  // - When user unchecks an item, it moves back to the unchecked group
+  const displayedOptions = useMemo(() => {
+    const matching = searchTerm.trim()
+      ? options.filter((opt) => opt.toLowerCase().includes(searchTerm.toLowerCase()))
+      : options;
+
+    if (!autoSortSelectedFirst) {
+      return matching;
+    }
+
+    return [...matching].sort((a, b) => {
+      const aSelected = selected.includes(a);
+      const bSelected = selected.includes(b);
+
+      if (aSelected && !bSelected) return -1;
+      if (!aSelected && bSelected) return 1;
+
+      return a.localeCompare(b);
+    });
+  }, [options, selected, searchTerm, autoSortSelectedFirst]);
 
   const handleSelectAll = () => {
     if (searchTerm.trim()) {
       // Add all currently filtered options to selected without duplicates
-      const newSet = new Set([...selected, ...filteredOptions]);
+      const newSet = new Set([...selected, ...displayedOptions]);
       onChange(Array.from(newSet));
     } else {
       onChange([...options]);
@@ -76,9 +97,9 @@ function MultiSelectDropdown({
 
   const handleClear = () => {
     if (searchTerm.trim()) {
-      // Remove only the filtered options from selected
-      const filteredSet = new Set(filteredOptions);
-      onChange(selected.filter((item) => !filteredSet.has(item)));
+      // Remove only the displayed options from selected
+      const displayedSet = new Set(displayedOptions);
+      onChange(selected.filter((item) => !displayedSet.has(item)));
     } else {
       onChange([]);
     }
@@ -157,7 +178,7 @@ function MultiSelectDropdown({
                 onClick={handleSelectAll}
                 className="text-blue-600 dark:text-blue-400 hover:underline font-medium cursor-pointer"
               >
-                Pilih Semua {searchTerm ? `(${filteredOptions.length})` : ""}
+                Pilih Semua {searchTerm ? `(${displayedOptions.length})` : ""}
               </button>
               <div className="flex items-center gap-2">
                 {selected.length > 0 && (
@@ -178,7 +199,7 @@ function MultiSelectDropdown({
 
           {/* Options Checklist List */}
           <div className="overflow-y-auto p-1.5 space-y-0.5 flex-1 max-h-56">
-            {filteredOptions.length === 0 ? (
+            {displayedOptions.length === 0 ? (
               <div className="py-6 px-3 text-center space-y-1">
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                   Tidak ditemukan
@@ -188,7 +209,7 @@ function MultiSelectDropdown({
                 </p>
               </div>
             ) : (
-              filteredOptions.map((opt) => {
+              displayedOptions.map((opt) => {
                 const isChecked = selected.includes(opt);
                 return (
                   <label
@@ -285,9 +306,10 @@ export function CascadingFilterBar({
           }
           placeholder="Semua Jenis"
           searchable={true}
+          autoSortSelectedFirst={false}
         />
 
-        {/* Multiple Choice: Instansi (dengan Fitur Search) */}
+        {/* Multiple Choice: Instansi (dengan Fitur Search & Auto-Sort Selected First) */}
         <MultiSelectDropdown
           label="Instansi"
           options={instansiOptions}
@@ -302,9 +324,10 @@ export function CascadingFilterBar({
           }
           placeholder="Semua Instansi"
           searchable={true}
+          autoSortSelectedFirst={true}
         />
 
-        {/* Multiple Choice: Eselon I / II (dengan Fitur Search) */}
+        {/* Multiple Choice: Eselon I / II (dengan Fitur Search & Auto-Sort Selected First) */}
         <MultiSelectDropdown
           label="Eselon I / II"
           options={eselonOptions}
@@ -318,9 +341,10 @@ export function CascadingFilterBar({
           }
           placeholder="Semua Eselon"
           searchable={true}
+          autoSortSelectedFirst={true}
         />
 
-        {/* Multiple Choice: Satker (dengan Fitur Search) */}
+        {/* Multiple Choice: Satker (dengan Fitur Search & Auto-Sort Selected First) */}
         <MultiSelectDropdown
           label="Satker"
           options={satkerOptions}
@@ -333,6 +357,7 @@ export function CascadingFilterBar({
           }
           placeholder="Semua Satker"
           searchable={true}
+          autoSortSelectedFirst={true}
         />
 
         {/* Reset Filter Button */}
