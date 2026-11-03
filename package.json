@@ -15,6 +15,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "jose": "^6.2.15",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.61.0",
     "next": "14.2.35",
     "prisma": "^8.0.0-rc.29",
@@ -22,7 +23,8 @@
     "react-dom": "^18",
     "react-hot-toast": "^2.6.1",
     "recharts": "^3.10.1",
-    "tailwind-merge": "^3.7.0"
+    "tailwind-merge": "^3.7.0",
+    "html2canvas": "^1.4.1"
   },
   "devDependencies": {
     "@types/node": "^20",

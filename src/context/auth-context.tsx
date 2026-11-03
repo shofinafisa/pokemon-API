@@ -150,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserAvatar = async (avatarUrl: string): Promise<boolean> => {
     if (!user) return false;
     try {
-      const res = await fetch(`/api/users/${user.id}`, {
+      await fetch(`/api/users/${user.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ avatar: avatarUrl }),

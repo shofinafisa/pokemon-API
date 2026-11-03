@@ -11,11 +11,13 @@ import { TransactionsTable } from "@/components/dashboard/transactions-table";
 import { ExportControls } from "@/components/dashboard/export-controls";
 import { CascadingFilterBar } from "@/components/dashboard/cascading-filter-bar";
 import { AIInfographicModal } from "@/components/dashboard/ai-infographic-modal";
+import { InfographicTemplate, StructuredInsightItem } from "@/components/InfographicTemplate";
 import { MethodIcon } from "@/components/dashboard/method-icon";
 import { useFeatures } from "@/context/feature-context";
 import { useAuth } from "@/context/auth-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
 import {
   getMethodConfigBySlug,
   calculateDynamicStats,
@@ -24,12 +26,12 @@ import {
   INITIAL_CASCADING_FILTER,
   CascadingFilterState,
 } from "@/lib/cascading-filter-data";
+import { formatShortCurrency, formatNumber } from "@/lib/utils";
 import {
   UserCheck,
   ArrowLeft,
   ShieldAlert,
   ChevronRight,
-  Layers,
 } from "lucide-react";
 
 interface MethodDashboardViewProps {
@@ -57,7 +59,13 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
     ...INITIAL_CASCADING_FILTER,
     yearRange: globalYearRange,
   });
+
+  // State untuk arsitektur Data-Driven DOM-to-Image
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState("");
+  const [generatedInsight, setGeneratedInsight] = useState("");
+  const [generatedStructuredInsights, setGeneratedStructuredInsights] = useState<StructuredInsightItem[]>([]);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const isEnabled = isAll ? activeMethods.length > 0 : (methodConfig ? isFeatureEnabled(methodConfig.key) : false);
   const targetKey = isAll ? null : (methodConfig ? methodConfig.key : null);
@@ -87,6 +95,84 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
     }),
     [totalAmount, totalPackages, avgAmount, efficiencyRatio]
   );
+
+  // 3. Logika Capture dengan html2canvas (Data-Driven DOM-to-Image)
+  const handleGenerateInfographic = async () => {
+    setIsAIModalOpen(true);
+    setIsGeneratingAI(true);
+    setGeneratedImageUrl("");
+
+    try {
+      const payload = {
+        realisasi: formatShortCurrency(methodStats.totalAmount),
+        paket: `${formatNumber(methodStats.totalPackages)} Paket`,
+        efisiensi: `Hemat ${methodStats.efficiencyRatio}%`,
+        tahun: `${filterState.yearRange[0]} – ${filterState.yearRange[1]}`,
+        instansi:
+          filterState.instansi && filterState.instansi.length > 0
+            ? filterState.instansi.join(", ")
+            : "Seluruh Instansi Nasional",
+        metode: targetLabel,
+      };
+
+      // a. Lakukan fetch ke /api/generate-insight untuk mendapatkan teks analisis
+      const res = await fetch("/api/generate-insight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error("Gagal mengambil insight analisis dari API.");
+      }
+
+      const data = await res.json();
+      const insightText = data.insight || "";
+
+      // b. Masukkan teks tersebut ke state yang terhubung ke InfographicTemplate
+      setGeneratedInsight(insightText);
+      if (Array.isArray(data.structuredInsights) && data.structuredInsights.length > 0) {
+        setGeneratedStructuredInsights(data.structuredInsights);
+      }
+
+      // c. Tunggu grafik Recharts selesai dirender di background DOM
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      // Jalankan html2canvas(document.getElementById('infographic-template'))
+      const element = document.getElementById("infographic-template");
+      if (element) {
+        const html2canvas = (await import("html2canvas")).default;
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#EEF2F6",
+          logging: false,
+          width: 794,
+          height: 1123,
+          windowWidth: 794,
+          windowHeight: 1123,
+          x: 0,
+          y: 0,
+          scrollX: 0,
+          scrollY: 0,
+        });
+
+        // d. Ambil output .toDataURL('image/png') dari canvas
+        const base64Png = canvas.toDataURL("image/png");
+
+        // e. Kirim string Base64 PNG tersebut ke dalam Modal UI
+        setGeneratedImageUrl(base64Png);
+        toast.success("Infografis AI berhasil di-generate dari data dashboard!", { icon: "📊" });
+      } else {
+        throw new Error("Elemen template infografis tidak ditemukan di DOM.");
+      }
+    } catch (err) {
+      console.error("Gagal capture infografis:", err);
+      toast.error("Terjadi kesalahan saat memproses infografis DOM-to-Image.");
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
 
   // If slug is invalid
   if (!isAll && !methodConfig) {
@@ -136,31 +222,36 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
             <div className="flex items-center gap-2 flex-wrap">
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold shadow-2xs transition-all cursor-pointer group"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-all font-medium shadow-xs"
               >
-                <ArrowLeft className="w-3.5 h-3.5 text-blue-500 group-hover:-translate-x-0.5 transition-transform" />
-                <span>Kembali ke Pilihan Metode</span>
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Pilihan Metode</span>
               </Link>
 
-              <div className="hidden sm:flex items-center gap-1.5 text-slate-400">
-                <span>/</span>
-                <Link
-                  href="/dashboard"
-                  className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                >
-                  Dashboard
-                </Link>
+              <span className="text-slate-400">/</span>
+
+              <div className="flex items-center gap-1.5 text-slate-500">
+                <span>Monitoring</span>
                 <ChevronRight className="w-3 h-3 text-slate-400" />
-                <span className="font-semibold text-slate-800 dark:text-slate-100 truncate max-w-[280px]">
+                <span className="font-semibold text-slate-900 dark:text-slate-100">
                   {targetLabel}
                 </span>
               </div>
             </div>
+
+            {/* Status indicator */}
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-[11px] text-slate-400">Status Data:</span>
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live Inaproc Sync
+              </span>
+            </div>
           </div>
 
-          {/* Header Banner & Action Tools (Export & AI Infographic) */}
+          {/* Header Banner & Action Buttons */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 transition-all">
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge
                   variant="secondary"
@@ -170,28 +261,13 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
                   PPK SATKER &bull; INAPROC
                 </Badge>
 
-                {methodConfig && (
-                  <Badge
-                    variant="outline"
-                    className="gap-1.5 py-0.5 px-2.5 font-semibold text-[11px]"
-                    style={{
-                      borderColor: `${methodConfig.badgeColor}40`,
-                      backgroundColor: `${methodConfig.badgeColor}15`,
-                      color: methodConfig.badgeColor,
-                    }}
-                  >
-                    <MethodIcon name={methodConfig.iconName} className="w-3 h-3" />
-                    <span>{methodConfig.category}</span>
+                {isAll ? (
+                  <Badge variant="default" className="py-0.5 px-2.5 bg-blue-600 text-white font-semibold text-[11px]">
+                    SEMUA METODE NASIONAL (AGREGAT)
                   </Badge>
-                )}
-
-                {isAll && (
-                  <Badge
-                    variant="outline"
-                    className="gap-1.5 py-0.5 px-2.5 font-semibold text-[11px] border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                  >
-                    <Layers className="w-3 h-3 text-blue-500" />
-                    <span>Ringkasan Komprehensif (12 Metode)</span>
+                ) : (
+                  <Badge variant="outline" className="py-0.5 px-2.5 text-[11px] font-semibold border-blue-500/30 text-blue-600 dark:text-blue-400">
+                    METODE SPESIFIK: {methodConfig?.label}
                   </Badge>
                 )}
               </div>
@@ -213,7 +289,7 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
             {/* Action Tools: Export controls & Infografis AI */}
             <div className="flex items-center gap-2 shrink-0">
               <ExportControls
-                onGenerateAI={() => setIsAIModalOpen(true)}
+                onGenerateAI={handleGenerateInfographic}
                 customTransactions={filteredTransactions}
                 filenamePrefix={isAll ? "laporan_pengadaan_nasional" : `laporan_pengadaan_${methodSlug}`}
               />
@@ -260,7 +336,7 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
             </div>
           )}
 
-          {/* Cascading Filter Bar: Rentang Tahun (Dual Range Slider) + Multi-Choice Dropdowns */}
+          {/* Cascading Filter Bar: Rentang Tahun + Multi-Choice Dropdowns */}
           <CascadingFilterBar
             filterState={filterState}
             onChange={setFilterState}
@@ -274,7 +350,46 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
             filterState={filterState}
             targetMethodLabel={targetLabel}
             customStats={methodStats}
+            imageUrl={generatedImageUrl}
+            activePrompt={generatedInsight}
+            isLoading={isGeneratingAI}
+            onRegenerate={handleGenerateInfographic}
           />
+
+          {/* 1. HIDDEN REACT COMPONENT: Komponen Template Infografis Tersembunyi */}
+          <div
+            className="fixed left-0 top-0 pointer-events-none overflow-hidden"
+            aria-hidden="true"
+            style={{
+              position: "fixed",
+              left: 0,
+              top: 0,
+              zIndex: -9999,
+              width: "794px",
+              height: "1123px",
+              pointerEvents: "none",
+            }}
+          >
+            <InfographicTemplate
+              id="infographic-template"
+              totalRealisasi={formatShortCurrency(methodStats.totalAmount)}
+              totalPaket={`${formatNumber(methodStats.totalPackages)} Paket`}
+              efisiensi={`Hemat ${methodStats.efficiencyRatio}%`}
+              tahun={`${filterState.yearRange[0]} – ${filterState.yearRange[1]}`}
+              instansi={
+                filterState.instansi && filterState.instansi.length > 0
+                  ? filterState.instansi.join(", ")
+                  : "Seluruh Instansi Nasional"
+              }
+              metode={targetLabel}
+              insight={generatedInsight}
+              structuredInsights={
+                generatedStructuredInsights.length > 0
+                  ? generatedStructuredInsights
+                  : undefined
+              }
+            />
+          </div>
 
           {/* If the method is disabled by Admin LKPP via Feature Toggle Engine */}
           {!isEnabled ? (
@@ -290,49 +405,41 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
                   Modul &ldquo;{targetLabel}&rdquo; saat ini dalam status nonaktif pada konsol Feature Toggle LKPP. Silakan pilih metode lain atau hubungi Admin LKPP untuk mengaktifkannya.
                 </p>
               </div>
-              <div className="pt-2 flex items-center justify-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => router.push("/dashboard")}
-                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs gap-1.5 cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  Pilih Metode Lain
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push("/dashboard")}
+                className="text-xs"
+              >
+                Pilih Metode Pengadaan Lain
+              </Button>
             </div>
           ) : (
-            /* Visualisasi & Data Table (Terkorelasi Real-Time dengan Filter) */
-            <div className="space-y-5">
-              {/* Kartu Metrik KPI Khusus Metode Ini atau Ringkasan Nasional */}
-              <section aria-label="Metrik Utama">
-                <KPIMetrics
-                  customStats={methodStats}
-                  subtitleMethod={targetLabel}
-                  yearRange={filterState.yearRange}
-                />
-              </section>
+            <>
+              {/* Live KPI Cards */}
+              <KPIMetrics
+                customStats={methodStats}
+                bypassFilters={false}
+                subtitleMethod={targetLabel}
+              />
 
-              {/* Grafik Tren & Donut Chart Khusus Metode Ini atau Distribusi Seluruh Metode */}
-              <section aria-label="Visualisasi Grafik">
-                <DynamicChartGrid
-                  customTransactions={filteredTransactions}
-                  customStats={methodStats}
-                  yearRange={filterState.yearRange}
-                  isSingleMethod={!isAll}
-                  targetMethodLabel={targetLabel}
-                />
-              </section>
+              {/* Dynamic Charts Grid */}
+              <DynamicChartGrid
+                customTransactions={filteredTransactions}
+                customStats={methodStats}
+                yearRange={filterState.yearRange}
+                bypassGuards={false}
+                isSingleMethod={!isAll}
+                targetMethodLabel={targetLabel}
+              />
 
-              {/* Tabel Dataset Paket Pengadaan Khusus Metode Ini atau Ringkasan Nasional */}
-              <section aria-label="Tabel Dataset">
-                <TransactionsTable
-                  customTransactions={filteredTransactions}
-                  targetMethodLabel={targetLabel}
-                  yearRange={filterState.yearRange}
-                />
-              </section>
-            </div>
+              {/* Data Table of Procurement Packages */}
+              <TransactionsTable
+                customTransactions={filteredTransactions}
+                bypassFilters={false}
+                targetMethodLabel={targetLabel}
+              />
+            </>
           )}
         </div>
       </DashboardShell>
