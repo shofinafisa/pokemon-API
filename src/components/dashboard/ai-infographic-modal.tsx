@@ -100,8 +100,35 @@ export function AIInfographicModal({
 
       toast.success("Infografis.pdf berhasil disimpan!", { icon: "📄" });
     } catch (error) {
-      console.error("Gagal cetak PDF:", error);
-      toast.error("Terjadi kesalahan saat memproses ekspor PDF.");
+      console.warn("Ekspor via jsPDF gagal, mengalihkan ke dialog cetak browser:", error);
+      try {
+        const printWindow = window.open("", "_blank");
+        if (printWindow) {
+          printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Infografis Data Pengadaan</title>
+                <style>
+                  @page { size: A4 portrait; margin: 0; }
+                  body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #fff; }
+                  img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+                </style>
+              </head>
+              <body>
+                <img src="${imageUrl}" onload="setTimeout(function(){ window.print(); }, 200);" />
+              </body>
+            </html>
+          `);
+          printWindow.document.close();
+          toast.success("Membuka dialog cetak PDF...", { icon: "📄" });
+        } else {
+          toast.error("Terjadi kesalahan saat memproses ekspor PDF.");
+        }
+      } catch (fallbackErr) {
+        console.error("Gagal cetak fallback:", fallbackErr);
+        toast.error("Terjadi kesalahan saat memproses ekspor PDF.");
+      }
     } finally {
       setIsExportingPDF(false);
     }
