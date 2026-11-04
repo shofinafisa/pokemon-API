@@ -135,8 +135,11 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
         setGeneratedStructuredInsights(data.structuredInsights);
       }
 
-      // c. Tunggu grafik Recharts selesai dirender di background DOM
-      await new Promise((resolve) => setTimeout(resolve, 400));
+      // c. Tunggu font dan grafik Recharts selesai dirender di background DOM
+      if (typeof document !== "undefined" && document.fonts) {
+        await document.fonts.ready;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 450));
 
       // Jalankan html2canvas(document.getElementById('infographic-template'))
       const element = document.getElementById("infographic-template");
@@ -155,6 +158,13 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
           y: 0,
           scrollX: 0,
           scrollY: 0,
+          onclone: (clonedDoc) => {
+            const el = clonedDoc.getElementById("infographic-template");
+            if (el) {
+              el.style.transform = "none";
+              el.style.opacity = "1";
+            }
+          },
         });
 
         // d. Ambil output .toDataURL('image/png') dari canvas

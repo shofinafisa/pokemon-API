@@ -8,6 +8,14 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      canvg: false,
+      'core-js': false,
+    };
+    return config;
+  },
 };
 
 export default nextConfig;

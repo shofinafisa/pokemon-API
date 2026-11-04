@@ -165,7 +165,7 @@ export function InfographicTemplate({
             <p className="text-[9px] uppercase font-semibold text-blue-200/70 tracking-wider">
               PERIODE
             </p>
-            <p className="text-xs font-bold text-white mt-0.5 truncate">
+            <p className="text-xs font-bold text-white mt-0.5 leading-normal overflow-visible">
               {tahun}
             </p>
           </div>
@@ -175,8 +175,8 @@ export function InfographicTemplate({
             <p className="text-[9px] uppercase font-semibold text-blue-200/70 tracking-wider">
               CAKUPAN INSTANSI
             </p>
-            <p className="text-xs font-bold text-white mt-0.5 truncate">
-              {instansi}
+            <p className="text-xs font-bold text-white mt-0.5 leading-normal overflow-visible" title={instansi}>
+              {instansi.length > 34 ? `${instansi.slice(0, 32)}...` : instansi}
             </p>
           </div>
 
@@ -185,7 +185,7 @@ export function InfographicTemplate({
             <p className="text-[9px] uppercase font-semibold text-blue-200/70 tracking-wider">
               METODE
             </p>
-            <p className="text-xs font-bold text-white mt-0.5 truncate">
+            <p className="text-xs font-bold text-white mt-0.5 leading-normal overflow-visible">
               {metode}
             </p>
           </div>
@@ -269,7 +269,7 @@ export function InfographicTemplate({
                 width={335}
                 height={160}
                 data={trendData}
-                margin={{ top: 15, right: 15, left: -20, bottom: 0 }}
+                margin={{ top: 15, right: 15, left: -20, bottom: 8 }}
               >
                 <defs>
                   <linearGradient id="inaprocAreaFill" x1="0" y1="0" x2="0" y2="1">
@@ -374,14 +374,16 @@ export function InfographicTemplate({
             </div>
 
             {/* Custom 2-Column Legend */}
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 pt-1 text-[10px] text-slate-700">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2 pt-1 text-[10px] text-slate-700">
               {categoryData.map((cat, idx) => (
-                <div key={idx} className="flex items-center gap-1.5 truncate">
+                <div key={idx} className="flex items-center gap-1.5 min-w-0">
                   <span
                     className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: cat.color }}
                   />
-                  <span className="truncate font-medium">{cat.name}</span>
+                  <span className="font-medium leading-normal whitespace-nowrap overflow-visible">
+                    {cat.name}
+                  </span>
                 </div>
               ))}
             </div>
@@ -411,7 +413,7 @@ export function InfographicTemplate({
                   <div className="w-5 h-5 rounded-full bg-[#244371] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                     {item.number}
                   </div>
-                  <h3 className="font-bold text-xs text-slate-900 truncate">
+                  <h3 className="font-bold text-xs text-slate-900 leading-normal overflow-visible">
                     {item.title}
                   </h3>
                 </div>
@@ -427,17 +429,17 @@ export function InfographicTemplate({
       {/* 3. FOOTER SECTION */}
       <div className="px-8 py-3.5 border-t border-slate-200/80 flex items-center justify-between text-slate-500 text-[10px]">
         <div>
-          <p className="font-bold text-slate-700 text-[10px]">
+          <p className="font-bold text-slate-700 text-[10px] leading-normal">
             Sistem Informasi Pengadaan Nasional &bull; INAPROC LKPP RI
           </p>
-          <p className="text-[9px] text-slate-400">
+          <p className="text-[9px] text-slate-400 leading-normal">
             Data dihasilkan secara otomatis berdasarkan basis data transaksi terverifikasi.
           </p>
         </div>
 
-        <div className="text-right font-mono text-[9px] text-slate-400 space-y-0.5">
-          <p>DOC-ID: INA-MW0CU7Z1</p>
-          <p>STATUS: RESMI / VALID</p>
+        <div className="text-right font-mono text-[9px] text-slate-400 space-y-1">
+          <p className="leading-normal">DOC-ID: INA-MW0CU7Z1</p>
+          <p className="leading-normal">STATUS: RESMI / VALID</p>
         </div>
       </div>
     </div>
