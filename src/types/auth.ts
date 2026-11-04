@@ -6,6 +6,7 @@ export interface User {
   email: string;
   role: UserRole;
   title?: string;
+  username?: string;
   avatar?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -21,4 +22,5 @@ export interface AuthContextType {
   switchRole: (newRole: UserRole) => void;
   refreshUser: () => Promise<void>;
   updateUserAvatar: (avatar: string) => Promise<boolean>;
+  updateProfile?: (name: string, username?: string, avatar?: string) => void;
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { findUserByEmailWithPassword } from "@/lib/db/users";
+import { findUserByEmailWithPassword, findUserById } from "@/lib/db/users";
 import { createSessionToken, verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth-jwt";
 
 export async function POST(req: NextRequest) {
@@ -32,12 +32,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Buat JWT Token dengan payload role ('ADMIN' | 'USER')
+    // Buat JWT Token dengan payload identitas dan role
     const token = await createSessionToken({
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
+      avatar: user.avatar,
+      username: user.username,
     });
 
     const response = NextResponse.json({
@@ -49,6 +51,8 @@ export async function POST(req: NextRequest) {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
+        username: user.username,
       },
     });
 
@@ -73,7 +77,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET: Ambil sesi pengguna saat ini berdasarkan JWT cookie
+// GET: Ambil sesi pengguna saat ini berdasarkan JWT cookie & sinkronkan data profil dari database
 export async function GET(req: NextRequest) {
   try {
     const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
@@ -86,13 +90,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 
+    // Ambil data terbaru dari database users (termasuk avatar base64 dan username)
+    const userInDb = findUserById(payload.id);
+
     return NextResponse.json({
       authenticated: true,
       user: {
         id: payload.id,
-        email: payload.email,
-        name: payload.name,
-        role: payload.role,
+        email: userInDb?.email || payload.email,
+        name: userInDb?.name || payload.name,
+        role: userInDb?.role || payload.role,
+        avatar: userInDb?.avatar || (payload.avatar as string | undefined),
+        username: userInDb?.username || (payload.username as string | undefined),
       },
     });
   } catch (error) {
@@ -120,4 +129,3 @@ export async function DELETE() {
 
   return response;
 }
-

@@ -2,35 +2,26 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { useFeatures } from "@/context/feature-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import toast from "react-hot-toast";
+import { ProfileMenu } from "@/components/ProfileMenu";
 import {
   ShieldCheck,
   UserCheck,
-  LogOut,
   Sliders,
   Settings,
   LayoutDashboard,
 } from "lucide-react";
 
 export function AppHeader() {
-  const { user, role, logout } = useAuth();
+  const { role } = useAuth();
   const { activeCount, totalCount } = useFeatures();
-  const router = useRouter();
   const pathname = usePathname();
 
   const isAdmin = role?.toUpperCase() === "ADMIN";
-
-  const handleLogout = async () => {
-    await logout();
-    toast.success("Berhasil keluar dari sesi.", { icon: "👋" });
-    router.replace("/login");
-  };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 sm:px-6 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/95 transition-all">
@@ -119,45 +110,10 @@ export function AppHeader() {
           </Badge>
         )}
 
-        {/* User Profile Capsule */}
-        {user && (
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-            {user.avatar ? (
-              <Image
-                src={user.avatar}
-                alt={user.name}
-                width={32}
-                height={32}
-                unoptimized
-                className="h-8 w-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-              />
-            ) : (
-              <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
-                {user.name.charAt(0)}
-              </div>
-            )}
-            <div className="hidden lg:block text-left">
-              <p className="text-xs font-semibold leading-tight text-slate-800 dark:text-slate-200">
-                {user.name}
-              </p>
-              <p className="text-[10px] text-slate-400 leading-tight truncate max-w-[130px]">
-                {user.email}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Logout Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleLogout}
-          className="h-8 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
-          title="Logout dari aplikasi"
-        >
-          <LogOut className="w-4 h-4" />
-          <span className="hidden sm:inline ml-1.5">Keluar</span>
-        </Button>
+        {/* Interactive Profile Menu with Popover & Modals */}
+        <div className="pl-2 border-l border-slate-200 dark:border-slate-800">
+          <ProfileMenu />
+        </div>
       </div>
     </header>
   );

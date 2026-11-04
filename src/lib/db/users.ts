@@ -10,6 +10,8 @@ export interface DbUser {
   password: string; // Hashed password
   name: string;
   role: Role;
+  username?: string;
+  avatar?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,6 +56,8 @@ function sanitizeUser(user: DbUser): Omit<DbUser, "password"> {
     name: user.name,
     email: user.email,
     role: user.role,
+    username: user.username,
+    avatar: user.avatar,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -116,6 +120,8 @@ export async function createUser(data: {
   email: string;
   password: string;
   role: Role;
+  username?: string;
+  avatar?: string;
 }): Promise<Omit<DbUser, "password">> {
   const users = ensureStorage();
   const normalizedEmail = data.email.trim().toLowerCase();
@@ -176,4 +182,61 @@ export function updateUser(
 
   persistStorage(users);
   return sanitizeUser(user);
+}
+
+export function updateUserProfile(
+  id: string,
+  data: { name?: string; username?: string; avatar?: string }
+): Omit<DbUser, "password"> | null {
+  const users = ensureStorage();
+  const user = users.find((u) => u.id === id);
+  if (!user) return null;
+
+  if (data.name !== undefined) user.name = data.name.trim();
+  if (data.username !== undefined) user.username = data.username.trim();
+  if (data.avatar !== undefined) user.avatar = data.avatar;
+  user.updatedAt = new Date().toISOString();
+
+  persistStorage(users);
+  return sanitizeUser(user);
+}
+
+export async function changeUserPassword(
+  id: string,
+  oldPass: string,
+  newPass: string
+): Promise<{ success: boolean; message: string }> {
+  const users = ensureStorage();
+  const user = users.find((u) => u.id === id);
+  if (!user) {
+    return { success: false, message: "Pengguna tidak ditemukan." };
+  }
+
+  const isValid = await bcrypt.compare(oldPass, user.password);
+  if (!isValid) {
+    return { success: false, message: "Password lama tidak sesuai." };
+  }
+
+  user.password = await bcrypt.hash(newPass, 10);
+  user.updatedAt = new Date().toISOString();
+  persistStorage(users);
+
+  return { success: true, message: "Password berhasil diperbarui." };
+}
+
+export async function setUserPassword(
+  id: string,
+  newPass: string
+): Promise<{ success: boolean; message: string }> {
+  const users = ensureStorage();
+  const user = users.find((u) => u.id === id);
+  if (!user) {
+    return { success: false, message: "Pengguna tidak ditemukan." };
+  }
+
+  user.password = await bcrypt.hash(newPass, 10);
+  user.updatedAt = new Date().toISOString();
+  persistStorage(users);
+
+  return { success: true, message: "Password berhasil diperbarui." };
 }

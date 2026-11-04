@@ -184,6 +184,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = (newName: string, newUsername?: string, newAvatar?: string) => {
+    if (!user) return;
+    const updatedUser: User = {
+      ...user,
+      name: newName,
+      username: newUsername || user.username,
+      avatar: newAvatar || user.avatar,
+    };
+    setUser(updatedUser);
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedUser));
+    } catch {
+      // Ignore
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{

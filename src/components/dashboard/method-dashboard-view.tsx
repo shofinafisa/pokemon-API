@@ -325,9 +325,8 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
                 <div className="text-right">
                   <span className="text-[10px] text-slate-400 block">Status Fitur:</span>
                   <span
-                    className={`text-[11px] font-bold ${
-                      isEnabled ? "text-emerald-600 dark:text-emerald-400" : "text-amber-500"
-                    }`}
+                    className={`text-[11px] font-bold ${isEnabled ? "text-emerald-600 dark:text-emerald-400" : "text-amber-500"
+                      }`}
                   >
                     {isEnabled ? "Aktif & Terbuka" : "Dinonaktifkan Admin"}
                   </span>
