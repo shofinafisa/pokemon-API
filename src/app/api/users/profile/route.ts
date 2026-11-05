@@ -74,8 +74,8 @@ export async function PUT(req: NextRequest) {
         email: updated.email,
         name: updated.name,
         role: updated.role,
-        avatar: updated.avatar,
-        username: updated.username,
+
+
       });
 
       const response = NextResponse.json({

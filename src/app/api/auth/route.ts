@@ -38,8 +38,8 @@ export async function POST(req: NextRequest) {
       email: user.email,
       name: user.name,
       role: user.role,
-      avatar: user.avatar,
-      username: user.username,
+
+
     });
 
     const response = NextResponse.json({
@@ -53,6 +53,8 @@ export async function POST(req: NextRequest) {
         role: user.role,
         avatar: user.avatar,
         username: user.username,
+  
+  
       },
     });
 
