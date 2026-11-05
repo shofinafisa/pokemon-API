@@ -26,6 +26,12 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
 
+  // Prefetch dashboard dan admin routes saat user di halaman login agar transisi instan
+  React.useEffect(() => {
+    router.prefetch("/dashboard");
+    router.prefetch("/admin");
+  }, [router]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");

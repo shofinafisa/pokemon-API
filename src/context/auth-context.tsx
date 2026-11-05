@@ -8,9 +8,33 @@ const AUTH_STORAGE_KEY = "enterprise_dashboard_session";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<UserRole | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return null;
+  });
+  const [role, setRole] = useState<UserRole | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (stored) return JSON.parse(stored).role;
+      } catch {}
+    }
+    return null;
+  });
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (stored) return false;
+      } catch {}
+    }
+    return true;
+  });
 
   // Helper avatar fallback
   const getAvatar = (name: string, roleVal: string, existingAvatar?: string) => {
@@ -212,6 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         switchRole,
         refreshUser,
         updateUserAvatar,
+        updateProfile,
       }}
     >
       {children}

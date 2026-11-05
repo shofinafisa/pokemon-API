@@ -74,7 +74,12 @@ export async function PUT(req: NextRequest) {
         email: updated.email,
         name: updated.name,
         role: updated.role,
+<<<<<<< HEAD
         username: updated.username,
+=======
+
+
+>>>>>>> 3b751f9785030d066145105423356d5f43633f68
       });
 
       const response = NextResponse.json({

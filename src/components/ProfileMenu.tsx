@@ -158,22 +158,62 @@ export function ProfileMenu({
     }
   };
 
-  // Handler Unggah File Foto Lokal
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Ukuran file foto maksimal 5MB.");
-        return;
-      }
+  // Helper kompresi gambar lokal otomatis ke ~12KB JPEG dengan crop square di browser
+  const compressAvatarFile = (file: File, targetSize = 256, quality = 0.85): Promise<string> => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          setPreviewImage(reader.result);
-          toast.success("Foto profil berhasil dipilih!", { icon: "📸" });
-        }
+      reader.onerror = reject;
+      reader.onload = () => {
+        const img = new window.Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const { width, height } = img;
+          const minSide = Math.min(width, height);
+          const startX = (width - minSide) / 2;
+          const startY = (height - minSide) / 2;
+
+          canvas.width = targetSize;
+          canvas.height = targetSize;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(reader.result as string);
+            return;
+          }
+
+          ctx.drawImage(img, startX, startY, minSide, minSide, 0, 0, targetSize, targetSize);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
+    });
+  };
+
+  // Handler Unggah File Foto Lokal
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Ukuran file foto maksimal 10MB.");
+        return;
+      }
+      try {
+        const compressed = await compressAvatarFile(file, 256, 0.85);
+        setPreviewImage(compressed);
+        toast.success("Foto profil berhasil dipilih!", { icon: "📸" });
+      } catch (err) {
+        console.error("Gagal kompresi foto:", err);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === "string") {
+            setPreviewImage(reader.result);
+            toast.success("Foto profil berhasil dipilih!", { icon: "📸" });
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -211,6 +251,10 @@ export function ProfileMenu({
       setName(editName.trim());
       setUsername(editUsername.trim());
       setAvatar(previewImage);
+
+      if (auth?.updateProfile) {
+        auth.updateProfile(editName.trim(), editUsername.trim(), previewImage);
+      }
 
       if (onUpdateProfile) {
         onUpdateProfile({
@@ -307,12 +351,13 @@ export function ProfileMenu({
       >
         {/* Foto Profil Bundar */}
         <div className="relative h-9 w-9 shrink-0">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={avatar}
             alt={name}
-            width={36}
-            height={36}
-            unoptimized
+
+
+
             className="h-9 w-9 rounded-full object-cover ring-2 ring-blue-500/20 group-hover:ring-blue-500/40 transition-all shadow-xs"
           />
           <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
