@@ -68,13 +68,12 @@ export async function PUT(req: NextRequest) {
         );
       }
 
-      // Perbarui cookie token dengan data terbaru
+      // Perbarui cookie token dengan data terbaru (tanpa avatar base64 agar cookie tetap ringan)
       const newToken = await createSessionToken({
         id: updated.id,
         email: updated.email,
         name: updated.name,
         role: updated.role,
-        avatar: updated.avatar,
         username: updated.username,
       });
 

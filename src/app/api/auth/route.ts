@@ -32,13 +32,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Buat JWT Token dengan payload identitas dan role
+    // Buat JWT Token dengan payload identitas dan role (jangan masukkan avatar base64 agar ukuran cookie tetap ringan <1KB)
     const token = await createSessionToken({
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
-      avatar: user.avatar,
       username: user.username,
     });
 
