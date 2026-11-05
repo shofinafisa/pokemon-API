@@ -1,70 +1,58 @@
+import * as XLSX from "xlsx";
 import { Transaction } from "@/types/dashboard";
 
 /**
- * Ekspor data paket pengadaan ke format Excel (.xlsx / XML Spreadsheet compatible)
+ * Ekspor data paket pengadaan ke format Excel (.xlsx) standar OOXML
+ * Kompatibel 100% dengan Microsoft Excel, LibreOffice, dan Google Sheets.
  */
-export function exportTransactionsToExcel(transactions: Transaction[], filename = "laporan_pengadaan_inaproc.xlsx") {
-  const escapeXml = (str: string = "") =>
-    String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&apos;");
+export function exportTransactionsToExcel(
+  transactions: Transaction[],
+  filename = "laporan_pengadaan_inaproc.xlsx"
+) {
+  // 1. Petakan data transaksi ke array of objects dengan label header resmi
+  const data = transactions.map((t) => ({
+    "Kode RUP": t.invoiceNumber,
+    "Instansi / Satuan Kerja": t.customerName,
+    "Nama Paket Pengadaan": t.product,
+    "Kategori Pengadaan": t.category,
+    "Metode Pengadaan": t.methodLabel || t.procurementMethod,
+    "Pagu / Nilai Realisasi (Rp)": t.amount,
+    "Status": t.status,
+    "Tanggal Penetapan": t.date,
+    "Sumber Anggaran": t.paymentMethod || "-",
+  }));
 
-  const rowsXml = transactions
-    .map(
-      (t) => `
-    <Row>
-      <Cell><Data ss:Type="String">${escapeXml(t.invoiceNumber)}</Data></Cell>
-      <Cell><Data ss:Type="String">${escapeXml(t.customerName)}</Data></Cell>
-      <Cell><Data ss:Type="String">${escapeXml(t.product)}</Data></Cell>
-      <Cell><Data ss:Type="String">${escapeXml(t.category)}</Data></Cell>
-      <Cell><Data ss:Type="String">${escapeXml(t.methodLabel || t.procurementMethod)}</Data></Cell>
-      <Cell><Data ss:Type="Number">${t.amount}</Data></Cell>
-      <Cell><Data ss:Type="String">${escapeXml(t.status)}</Data></Cell>
-      <Cell><Data ss:Type="String">${escapeXml(t.date)}</Data></Cell>
-      <Cell><Data ss:Type="String">${escapeXml(t.paymentMethod || "-")}</Data></Cell>
-    </Row>`
-    )
-    .join("");
+  // Buat worksheet dari json
+  const worksheet = XLSX.utils.json_to_sheet(data);
 
-  const xmlContent = `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
- <Styles>
-  <Style ss:ID="Header">
-   <Font ss:Bold="1" ss:Color="#FFFFFF"/>
-   <Interior ss:Color="#059669" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center"/>
-  </Style>
- </Styles>
- <Worksheet ss:Name="Paket Pengadaan INAPROC">
-  <Table>
-   <Row ss:StyleID="Header">
-    <Cell><Data ss:Type="String">Kode RUP</Data></Cell>
-    <Cell><Data ss:Type="String">Instansi / Satuan Kerja</Data></Cell>
-    <Cell><Data ss:Type="String">Nama Paket Pengadaan</Data></Cell>
-    <Cell><Data ss:Type="String">Kategori Pengadaan</Data></Cell>
-    <Cell><Data ss:Type="String">Metode Pengadaan</Data></Cell>
-    <Cell><Data ss:Type="String">Pagu / Nilai Realisasi (Rp)</Data></Cell>
-    <Cell><Data ss:Type="String">Status</Data></Cell>
-    <Cell><Data ss:Type="String">Tanggal Penetapan</Data></Cell>
-    <Cell><Data ss:Type="String">Sumber Anggaran</Data></Cell>
-   </Row>
-   ${rowsXml}
-  </Table>
- </Worksheet>
-</Workbook>`;
+  // Set lebar kolom yang proporsional dan rapi
+  worksheet["!cols"] = [
+    { wch: 15 }, // Kode RUP
+    { wch: 42 }, // Instansi / Satker
+    { wch: 48 }, // Nama Paket Pengadaan
+    { wch: 22 }, // Kategori
+    { wch: 26 }, // Metode Pengadaan
+    { wch: 24 }, // Nilai Realisasi (Rp)
+    { wch: 15 }, // Status
+    { wch: 18 }, // Tanggal Penetapan
+    { wch: 20 }, // Sumber Anggaran
+  ];
 
-  const blob = new Blob([xmlContent], { type: "application/vnd.ms-excel;charset=utf-8;" });
+  // Buat workbook baru dan masukkan sheet
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Paket Pengadaan");
+
+  // Generate buffer biner bertipe XLSX (PKZip OOXML)
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  const finalFilename = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`;
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", filename.endsWith(".xlsx") || filename.endsWith(".xls") ? filename : `${filename}.xlsx`);
+  link.setAttribute("download", finalFilename);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -72,9 +60,12 @@ export function exportTransactionsToExcel(transactions: Transaction[], filename 
 }
 
 /**
- * Ekspor data paket pengadaan ke format CSV (.csv) dengan header berbahasa Indonesia
+ * Ekspor data paket pengadaan ke format CSV (.csv) dengan UTF-8 BOM dan header berbahasa Indonesia
  */
-export function exportTransactionsToCSV(transactions: Transaction[], filename = "laporan_pengadaan_inaproc.csv") {
+export function exportTransactionsToCSV(
+  transactions: Transaction[],
+  filename = "laporan_pengadaan_inaproc.csv"
+) {
   const headers = [
     "Kode RUP",
     "Instansi / Satker",
@@ -89,22 +80,23 @@ export function exportTransactionsToCSV(transactions: Transaction[], filename = 
 
   const rows = transactions.map((t) => [
     t.invoiceNumber,
-    `"${t.customerName.replace(/"/g, '""')}"`,
-    `"${t.product.replace(/"/g, '""')}"`,
-    `"${t.category.replace(/"/g, '""')}"`,
-    `"${(t.methodLabel || t.procurementMethod).replace(/"/g, '""')}"`,
+    `"${(t.customerName || "").replace(/"/g, '""')}"`,
+    `"${(t.product || "").replace(/"/g, '""')}"`,
+    `"${(t.category || "").replace(/"/g, '""')}"`,
+    `"${(t.methodLabel || t.procurementMethod || "").replace(/"/g, '""')}"`,
     t.amount.toString(),
     t.status,
     t.date,
     `"${(t.paymentMethod || "-").replace(/"/g, '""')}"`,
   ]);
 
-  const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+  const csvContent =
+    "\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", filename);
+  link.setAttribute("download", filename.endsWith(".csv") ? filename : `${filename}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
