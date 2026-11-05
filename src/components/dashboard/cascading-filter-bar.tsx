@@ -10,6 +10,7 @@ import {
 } from "@/lib/cascading-filter-data";
 import { DateFilter } from "@/components/dashboard/date-filter";
 import { RotateCcw, ChevronDown, Calendar, Search, X } from "lucide-react";
+import { useFeatures } from "@/context/feature-context";
 
 interface MultiSelectDropdownProps {
   label: string;
@@ -253,9 +254,77 @@ export function CascadingFilterBar({
   onChange,
   onReset,
 }: CascadingFilterBarProps) {
-  const instansiOptions = getInstansiOptions(filterState.jenisInstansi);
-  const eselonOptions = getEselonOptions(filterState.instansi);
-  const satkerOptions = getSatkerOptions(filterState.eselon);
+  const {
+    availableMinistries,
+    availableSatkersByMinistry,
+    availableEselonsByMinistry,
+    availableSatkersByEselon,
+  } = useFeatures();
+
+  // 1. Instansi options dinamis dari data.json (atau fallback mock)
+  const instansiOptions = useMemo(() => {
+    if (availableMinistries && availableMinistries.length > 0) {
+      if (filterState.jenisInstansi.length === 0) {
+        return availableMinistries;
+      }
+      return availableMinistries.filter((ins) => {
+        const u = ins.toUpperCase();
+        return filterState.jenisInstansi.some((j) => {
+          if (j === "Kementerian") return u.includes("KEMENTERIAN") || u.includes("BENDAHARA UMUM NEGARA");
+          if (j === "Lembaga") return u.includes("LEMBAGA") || u.includes("BADAN");
+          if (j === "Pemerintah Daerah Provinsi") return u.includes("PROVINSI");
+          if (j === "Pemerintah Daerah Kab/Kota") return u.includes("KOTA") || u.includes("KABUPATEN");
+          return true;
+        });
+      });
+    }
+    return getInstansiOptions(filterState.jenisInstansi);
+  }, [availableMinistries, filterState.jenisInstansi]);
+
+  // 2. Eselon options dinamis
+  const eselonOptions = useMemo(() => {
+    if (availableEselonsByMinistry && Object.keys(availableEselonsByMinistry).length > 0) {
+      if (filterState.instansi.length > 0) {
+        const set = new Set<string>();
+        filterState.instansi.forEach((ins) => {
+          (availableEselonsByMinistry[ins] || []).forEach((es) => set.add(es));
+        });
+        return Array.from(set).sort();
+      }
+      const allEselons = new Set<string>();
+      Object.values(availableEselonsByMinistry).forEach((list) => {
+        list.forEach((es) => allEselons.add(es));
+      });
+      return Array.from(allEselons).sort();
+    }
+    return getEselonOptions(filterState.instansi);
+  }, [availableEselonsByMinistry, filterState.instansi]);
+
+  // 3. Satker options dinamis
+  const satkerOptions = useMemo(() => {
+    if (availableSatkersByMinistry && Object.keys(availableSatkersByMinistry).length > 0) {
+      if (filterState.eselon.length > 0 && availableSatkersByEselon) {
+        const set = new Set<string>();
+        filterState.eselon.forEach((es) => {
+          (availableSatkersByEselon[es] || []).forEach((s) => set.add(s));
+        });
+        return Array.from(set).sort();
+      }
+      if (filterState.instansi.length > 0) {
+        const set = new Set<string>();
+        filterState.instansi.forEach((ins) => {
+          (availableSatkersByMinistry[ins] || []).forEach((s) => set.add(s));
+        });
+        return Array.from(set).sort();
+      }
+      const allSatkers = new Set<string>();
+      Object.values(availableSatkersByMinistry).forEach((list) => {
+        list.forEach((s) => allSatkers.add(s));
+      });
+      return Array.from(allSatkers).sort();
+    }
+    return getSatkerOptions(filterState.eselon);
+  }, [availableSatkersByMinistry, availableSatkersByEselon, filterState.eselon, filterState.instansi]);
 
   const isYearFiltered =
     filterState.yearRange[0] !== 2020 || filterState.yearRange[1] !== 2026;

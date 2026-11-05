@@ -586,13 +586,15 @@ export function filterTransactionsList(
   });
 }
 
-// Helper to calculate dynamic dashboard stats based on active procurement methods, year range, and cascading filters
+// Helper to calculate dynamic dashboard stats based on active procurement methods, year range, cascading filters, and custom transaction list
 export function calculateDynamicStats(
   activeKeys: FeatureKey[],
   yearRange?: [number, number],
-  cascading?: CascadingFilterInput
+  cascading?: CascadingFilterInput,
+  transactionsList?: Transaction[]
 ) {
-  const filtered = filterTransactionsList(MOCK_TRANSACTIONS, {
+  const source = transactionsList && transactionsList.length > 0 ? transactionsList : MOCK_TRANSACTIONS;
+  const filtered = filterTransactionsList(source, {
     activeKeys,
     yearRange,
     cascading,

@@ -54,4 +54,11 @@ export interface FeatureContextType {
     avgAmount: number;
     efficiencyRatio: string;
   };
+  availableMinistries?: string[];
+  availableSatkersByMinistry?: Record<string, string[]>;
+  availableEselonsByMinistry?: Record<string, string[]>;
+  availableSatkersByEselon?: Record<string, string[]>;
+  isLoadingData?: boolean;
+  rawTransactions?: Transaction[];
+  reloadProcurementData?: () => Promise<void>;
 }

@@ -10,6 +10,7 @@ import React, {
   useMemo,
 } from "react";
 import { FeatureKey, FeatureFlags, FeatureContextType, YearRange } from "@/types/features";
+import { Transaction } from "@/types/dashboard";
 import { FEATURE_CONFIGS, calculateDynamicStats } from "@/lib/mock-data";
 import {
   CascadingFilterState,
@@ -37,6 +38,41 @@ export function FeatureProvider({ children }: { children: ReactNode }) {
     ...INITIAL_CASCADING_FILTER,
     yearRange: DEFAULT_YEAR_RANGE,
   });
+
+  // Dynamic Dataset State from data/data.json
+  const [rawTransactions, setRawTransactions] = useState<Transaction[]>([]);
+  const [availableMinistries, setAvailableMinistries] = useState<string[]>([]);
+  const [availableSatkersByMinistry, setAvailableSatkersByMinistry] = useState<Record<string, string[]>>({});
+  const [availableEselonsByMinistry, setAvailableEselonsByMinistry] = useState<Record<string, string[]>>({});
+  const [availableSatkersByEselon, setAvailableSatkersByEselon] = useState<Record<string, string[]>>({});
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
+
+  const reloadProcurementData = useCallback(async () => {
+    try {
+      setIsLoadingData(true);
+      const res = await fetch("/api/procurement-data");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.transactions)) {
+          setRawTransactions(json.transactions);
+          if (json.summary) {
+            setAvailableMinistries(json.summary.availableMinistries || []);
+            setAvailableSatkersByMinistry(json.summary.availableSatkersByMinistry || {});
+            setAvailableEselonsByMinistry(json.summary.availableEselonsByMinistry || {});
+            setAvailableSatkersByEselon(json.summary.availableSatkersByEselon || {});
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data pengadaan:", err);
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    reloadProcurementData();
+  }, [reloadProcurementData]);
 
   // Load from localStorage on mount & safely validate
   useEffect(() => {
@@ -245,13 +281,18 @@ export function FeatureProvider({ children }: { children: ReactNode }) {
   // Core Real-Time Filter Engine: calculates filteredTransactions and stats
   const { filteredTransactions, totalAmount, totalPackages, avgAmount, efficiencyRatio } =
     useMemo(() => {
-      return calculateDynamicStats(activeMethods, yearRange, {
-        jenisInstansi: cascadingFilter.jenisInstansi,
-        instansi: cascadingFilter.instansi,
-        eselon: cascadingFilter.eselon,
-        satker: cascadingFilter.satker,
-      });
-    }, [activeMethods, yearRange, cascadingFilter]);
+      return calculateDynamicStats(
+        activeMethods,
+        yearRange,
+        {
+          jenisInstansi: cascadingFilter.jenisInstansi,
+          instansi: cascadingFilter.instansi,
+          eselon: cascadingFilter.eselon,
+          satker: cascadingFilter.satker,
+        },
+        rawTransactions
+      );
+    }, [activeMethods, yearRange, cascadingFilter, rawTransactions]);
 
   const filteredStats = useMemo(
     () => ({
@@ -285,6 +326,13 @@ export function FeatureProvider({ children }: { children: ReactNode }) {
         resetCascadingFilter,
         filteredTransactions,
         filteredStats,
+        availableMinistries,
+        availableSatkersByMinistry,
+        availableEselonsByMinistry,
+        availableSatkersByEselon,
+        isLoadingData,
+        rawTransactions,
+        reloadProcurementData,
       }}
     >
       {children}

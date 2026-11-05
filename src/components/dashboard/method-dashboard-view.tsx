@@ -45,6 +45,7 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
     isFeatureEnabled,
     activeMethods,
     yearRange: globalYearRange,
+    rawTransactions,
   } = useFeatures();
 
   const isAll = methodSlug.toLowerCase() === "all" || methodSlug.toLowerCase() === "nasional";
@@ -78,13 +79,18 @@ export function MethodDashboardView({ methodSlug }: MethodDashboardViewProps) {
 
   const { filteredTransactions, totalAmount, totalPackages, avgAmount, efficiencyRatio } =
     useMemo(() => {
-      return calculateDynamicStats(targetKeysArray, filterState.yearRange, {
-        jenisInstansi: filterState.jenisInstansi,
-        instansi: filterState.instansi,
-        eselon: filterState.eselon,
-        satker: filterState.satker,
-      });
-    }, [targetKeysArray, filterState]);
+      return calculateDynamicStats(
+        targetKeysArray,
+        filterState.yearRange,
+        {
+          jenisInstansi: filterState.jenisInstansi,
+          instansi: filterState.instansi,
+          eselon: filterState.eselon,
+          satker: filterState.satker,
+        },
+        rawTransactions
+      );
+    }, [targetKeysArray, filterState, rawTransactions]);
 
   const methodStats = useMemo(
     () => ({

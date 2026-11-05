@@ -25,17 +25,21 @@ import {
 
 export default function UserMethodSelectionPage() {
   const { user } = useAuth();
-  const { isFeatureEnabled, activeCount, totalCount } = useFeatures();
+  const { isFeatureEnabled, activeCount, totalCount, rawTransactions, filteredTransactions } = useFeatures();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Pre-calculate package count and total amount for each method
+  const transactionsList = useMemo(() => {
+    return rawTransactions && rawTransactions.length > 0 ? rawTransactions : MOCK_TRANSACTIONS;
+  }, [rawTransactions]);
+
+  // Pre-calculate package count and total amount for each method using real dataset
   const methodStatsSummary = useMemo(() => {
     const summary: Record<string, { count: number; totalAmount: number }> = {};
     FEATURE_CONFIGS.forEach((cfg) => {
       summary[cfg.key] = { count: 0, totalAmount: 0 };
     });
 
-    MOCK_TRANSACTIONS.forEach((tx) => {
+    transactionsList.forEach((tx) => {
       if (summary[tx.procurementMethod]) {
         summary[tx.procurementMethod].count += 1;
         summary[tx.procurementMethod].totalAmount += tx.amount;
@@ -43,7 +47,7 @@ export default function UserMethodSelectionPage() {
     });
 
     return summary;
-  }, []);
+  }, [transactionsList]);
 
   const filteredMethods = useMemo(() => {
     return FEATURE_CONFIGS.filter((cfg) => {
