@@ -1,86 +1,34 @@
-# INAPROC Dashboard - Pengadaan Barang dan Jasa Pemerintah (LKPP)
+# PokéAPI Explorer - Pokémon Hub (Ditto Showcase)
 
-Dashboard analitik data pengadaan barang dan jasa pemerintah berbasis Next.js 14 (App Router), TypeScript, dan Tailwind CSS dengan **Dynamic Feature Toggle Engine** untuk 12 Metode Pengadaan INAPROC / LKPP.
-
----
+Aplikasi eksplorasi data Pokémon interaktif berbasis **Next.js 14**, **Tailwind CSS**, dan **PokéAPI REST API v2**. Halaman beranda tunggal (Single Page Application) langsung terhubung dengan PokéAPI tanpa memerlukan halaman login.
 
 ## 🚀 Fitur Utama
 
-### 1. Unified Authentication & Role-Based Routing
-- **Satu Pintu Masuk (Unified Login):** Sistem mengenali peran pengguna (*Admin LKPP* atau *User / PPK Satker*).
-- **Auto-Redirection & Auth Guards:** Halaman dilindungi oleh `AuthGuard`. Admin diarahkan ke `/admin`, sedangkan Standard User diarahkan ke `/dashboard`.
-- **Quick Demo Credentials:** Tombol sekali klik di halaman login untuk mengisi kredensial Admin atau User secara instan.
-- **Quick Role Switcher:** Tombol pengubah role instan di navigasi atas untuk mempermudah demonstrasi dan pengujian antarmuka.
+- **Koneksi Langsung ke PokéAPI v2**:
+  - Endpoint resmi: `https://pokeapi.co/api/v2/pokemon/ditto`
+  - Fallback cerdas ke GitHub Data Mirror & embedded cache jika koneksi/firewall lokal membatasi domain `pokeapi.co`.
+- **Beranda Tunggal Publik**: Akses instan langsung ke data Pokémon tanpa hambatan login.
+- **Visualisasi Karakter**:
+  - Official Artwork resolusi tinggi dari Pokémon HOME.
+  - Mode Normal vs Shiny ✨ toggle.
+  - Galeri sprite klasik (Front & Back).
+  - Pemutar suara tangisan (*cry*) Pokémon langsung dari PokéAPI.
+- **Pemeriksaan Statistik Tempur (Base Stats)**:
+  - 6 parameter tempur dasar: HP, Attack, Defense, Special Attack, Special Defense, Speed, dan Total Base Stats.
+- **Detail Kemampuan (Abilities)**:
+  - Limber (kebal paralisis) dan Imposter (Hidden Ability).
+- **Raw JSON Viewer**:
+  - Tab data payload JSON asli dari PokéAPI dengan tombol salin cepat.
+- **Pencarian Pokémon**:
+  - Tombol cepat untuk Pokémon populer (Pikachu, Charizard, Gengar, Mewtwo, dll.) serta input pencarian bebas.
 
-### 2. Halaman Utama Pemilihan Metode Pengadaan (`/dashboard`)
-Halaman gerbang utama bagi **User (PPK Satker)** sebelum masuk ke dashboard analitik:
-- **Judul Terpusat:** *“Dashboard Monitoring Pengadaan Nasional”*
-- **Pertanyaan Pengarah:** *“Mau Tahu tentang Apa?”*
-- **12 Kartu Metode Modern:** Menampilkan 12 metode pengadaan LKPP dengan ikon, kategori, estimasi paket real-time, dan status aktif.
-- **Pencarian Cepat:** Mempermudah penelusuran 12 metode pengadaan berdasarkan kata kunci nama metode atau deskripsi secara instan.
-- **Navigasi Sekali Klik:** Mengarahkan ke masing-masing dashboard spesifik metode pengadaan.
-- **Banner Ringkasan Nasional:** Banner di bagian bawah untuk akses langsung ke Dashboard Komprehensif (`/dashboard/all`) yang menyajikan akumulasi seluruh 12 metode.
+## 🛠️ Cara Menjalankan
 
-### 3. 12 Halaman Dashboard Khusus Metode Pengadaan (`/dashboard/[method]`)
-Setiap metode pengadaan memiliki halaman dashboard tersendiri dengan tata letak dan visual yang konsisten:
-1. `/dashboard/penunjukan-langsung` — Penunjukan Langsung
-2. `/dashboard/pengadaan-langsung` — Pengadaan Langsung
-3. `/dashboard/e-purchasing` — E-Purchasing
-4. `/dashboard/swakelola` — Swakelola
-5. `/dashboard/sayembara` — Sayembara
-6. `/dashboard/kontes` — Kontes
-7. `/dashboard/tender` — Tender
-8. `/dashboard/tender-cepat` — Tender Cepat
-9. `/dashboard/tender-internasional` — Tender Internasional
-10. `/dashboard/pengadaan-darurat` — Pengadaan Darurat
-11. `/dashboard/seleksi` — Seleksi
-12. `/dashboard/dikecualikan` — Dikecualikan
-- **Tombol Kembali:** *“Kembali ke Pilihan Metode”* untuk berpindah ke halaman utama `/dashboard`.
-- **Filter Bertingkat & Dual Range Slider:** Sinkronisasi rentang tahun, jenis instansi, instansi, eselon, dan satker.
-- **Fitur Live Search pada Dropdown Filter:** Dilengkapi kotak pencarian instan pada dropdown filter *Instansi*, *Eselon I / II*, dan *Satker* dengan autofokus, filter real-time, dan tombol clear.
-- **Pengurutan Otomatis Opsi Terpilih:** Opsi yang dicentang otomatis berpindah ke urutan paling atas daftar dropdown dengan urutan konsisten, diikuti opsi yang belum dipilih yang tetap tersusun secara alfabetis.
-- **Metrik KPI & Grafik Dinamis:** Data disaring khusus untuk metode yang sedang aktif.
-- **Tabel Paket & Ekspor:** Pencarian, pagination, ekspor Excel, CSV, PDF, dan Generate Infografis AI.
+1. Jalankan development server:
+   ```bash
+   npm run dev
+   ```
+   atau klik dua kali berkas `run.bat`.
 
-### 4. Feature Toggle Engine: 12 Metode Pengadaan LKPP / INAPROC
-Admin dapat mengaktifkan atau menonaktifkan 12 metode pengadaan secara instan via tombol On/Off (Switch) di `/admin`:
-1. **Penunjukan Langsung**
-2. **Pengadaan Langsung**
-3. **E-Purchasing**
-4. **Swakelola**
-5. **Sayembara**
-6. **Kontes**
-7. **Tender**
-8. **Tender Cepat**
-9. **Tender Internasional**
-10. **Pengadaan Darurat**
-11. **Seleksi**
-12. **Dikecualikan**
-
-### 5. Fitur Edit Foto Profil Akun
-- **Akses Interaktif dari Header:** Setiap pengguna yang sedang login (baik Administrator maupun PPK Satker) dapat mengeklik avatar profil di header untuk membuka modal edit foto profil.
-- **Akses Manajemen dari Admin Settings (`/admin/settings`):** Administrator dapat melihat foto profil seluruh akun pada tabel pengguna dan mengubah foto akun siapa pun secara langsung.
-- **3 Mode Pemilihan Foto:**
-  1. **Upload dari Perangkat:** Unggah file foto lokal (JPG, PNG, GIF, WebP) dengan konversi otomatis ke Base64 data URL (bekerja 100% offline).
-  2. **Koleksi Preset Resmi:** Pilihan 8 avatar profesional resmi INAPROC/LKPP sekali klik.
-  3. **Tautan URL Gambar:** Dukungan memasukkan URL gambar kustom.
-- **Pratinjau Langsung & Persistensi Data:** Dilengkapi live circular framing preview dan tersimpan secara permanen di basis data JSON serta state sesi pengguna.
-
----
-
-## 🔑 Kredensial Demo
-
-| Peran (Role) | Alamat Email | Kata Sandi | Akses Halaman |
-| :--- | :--- | :--- | :--- |
-| **Administrator LKPP** | `admin@dashboard.com` | `admin123` | `/admin` (Kontrol 12 Metode + Data Lengkap) |
-| **PPK Satker (User)** | `user@dashboard.com` | `user123` | `/dashboard` (Pemilihan Metode & 12 Dashboard Spesifik) |
-
----
-
-## 🛠️ Menjalankan Aplikasi
-
-```bash
-npm run dev
-```
-
-Buka `http://localhost:3000` (atau port yang aktif) di browser Anda.
+2. Buka di peramban:
+   [http://localhost:3000](http://localhost:3000)

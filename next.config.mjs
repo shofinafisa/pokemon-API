@@ -1,23 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    optimizePackageImports: ['lucide-react', 'recharts'],
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   images: {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'pokeapi.co',
+      },
     ],
-  },
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      canvg: false,
-      'core-js': false,
-    };
-    return config;
   },
 };
 

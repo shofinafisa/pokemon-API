@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "@/context/auth-context";
-import { FeatureProvider } from "@/context/feature-context";
 import { ToastProvider } from "@/components/ui/toast";
-import { AppToaster } from "@/components/ui/app-toaster";
 
 export const metadata: Metadata = {
-  title: "Dashboard INAPROC | Dynamic Feature Toggle Dashboard",
+  title: "PokéAPI Hub | Pokémon Ditto Explorer",
   description:
-    "Enterprise Data Dashboard dengan Unified Login, Dynamic Feature Toggle Engine, dan Role-Based Access Control.",
+    "Aplikasi integrasi PokéAPI REST v2 untuk menampilkan data lengkap Pokémon Ditto dengan visualisasi statistik, kemampuan, galeri sprite, dan respon raw JSON.",
 };
 
 export default function RootLayout({
@@ -18,15 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-blue-500 selection:text-white">
-        <AuthProvider>
-          <FeatureProvider>
-            <ToastProvider>
-              <AppToaster />
-              {children}
-            </ToastProvider>
-          </FeatureProvider>
-        </AuthProvider>
+      <body className="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-purple-600 selection:text-white">
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );
